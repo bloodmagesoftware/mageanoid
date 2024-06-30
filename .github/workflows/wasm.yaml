@@ -1,0 +1,133 @@
+name: Wasm
+
+on:
+  push:
+    tags:
+      - "*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+env:
+  binary: mageanoid
+  use_git_lfs: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: ${{ env.use_git_lfs }}
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - name: install wasm-bindgen-cli
+        run: |
+          cargo install wasm-bindgen-cli
+      - name: Build
+        run: |
+          cargo build --release --target wasm32-unknown-unknown
+      - name: Prepare package
+        run: |
+          wasm-bindgen --no-typescript --out-name ${{env.binary}} --out-dir wasm --target web target/wasm32-unknown-unknown/release/${{ env.binary }}.wasm
+          cp -r assets wasm/ || true # Try to copy, but ignore if it can't copy if source directory does not exist
+      - name: Create static HTML and JS files
+        run: |
+          cat > wasm/index.html <<EOF
+          <!DOCTYPE html>
+          <html lang="en">
+          <body>
+          <script type="module">
+              import "./restart-audio-context.js";
+              import init from "./${{env.binary}}.js";
+
+              init().catch((error) => {
+                  if (!error.message.startsWith("Using exceptions for control flow, don't mind me. This isn't actually an error!")) {
+                      throw error;
+                  }
+              });
+          </script>
+          <style>
+              :root, body {
+                  margin: 0;
+                  padding: 0;
+                  overflow: hidden;
+                  background-color: #000;
+              }
+
+              canvas {
+                  margin: auto;
+                  display: block;
+                  position: relative;
+                  max-width: 100vw;
+                  max-height: 100vh;
+              }
+          </style>
+          </body>
+          </html>
+          EOF
+          cat > wasm/restart-audio-context.js <<EOF
+            // taken from https://developer.chrome.com/blog/web-audio-autoplay/#moving-forward
+            (function () {
+                // An array of all contexts to resume on the page
+                const audioContextList = [];
+
+                // An array of various user interaction events we should listen for
+                const userInputEventNames = [ 'click', 'contextmenu', 'auxclick', 'dblclick', 'mousedown', 'mouseup', 'pointerup', 'touchend', 'keydown', 'keyup' ];
+
+                // A proxy object to intercept AudioContexts and
+                // add them to the array for tracking and resuming later
+                self.AudioContext = new Proxy(self.AudioContext, {
+                    construct(target, args) {
+                        const result = new target(...args);
+                        audioContextList.push(result);
+                        return result;
+                    },
+                });
+
+                // To resume all AudioContexts being tracked
+                function resumeAllContexts(event) {
+                    let count = 0;
+
+                    audioContextList.forEach(context => {
+                        if (context.state !== 'running') {
+                            context.resume();
+                        } else {
+                            count++;
+                        }
+                    });
+
+                    // If all the AudioContexts have now resumed then we
+                    // unbind all the event listeners from the page to prevent
+                    // unnecessary resume attempts
+                    if (count == audioContextList.length) {
+                        userInputEventNames.forEach(eventName => {
+                            document.removeEventListener(eventName, resumeAllContexts);
+                        });
+                    }
+                }
+
+                // We bind the resume function for each user interaction
+                // event on the page
+                userInputEventNames.forEach(eventName => {
+                    document.addEventListener(eventName, resumeAllContexts);
+                });
+            })();
+          EOF
+      - name: Upload binaries to artifacts
+        uses: actions/upload-pages-artifact@v3.0.1
+        with:
+          path: ./wasm
+          retention-days: 1
+          name: github-pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
