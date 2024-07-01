@@ -18,13 +18,17 @@
 
 use bevy::prelude::*;
 
-mod movement;
 mod player;
+mod cam;
+mod movement;
+mod gamepad;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(player::PlayerPlugin)
         .add_plugins(movement::MovementPlugin)
+        .add_plugins(gamepad::GamepadPlugin)
+        .add_plugins(cam::CamPlugin)
         .run();
 }

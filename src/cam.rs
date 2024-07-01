@@ -18,41 +18,14 @@
 
 use bevy::prelude::*;
 
-#[derive(Debug)]
-pub enum FaceDirection {
-    Left,
-    Right,
+fn add_camera(mut commands: Commands) {
+    commands.spawn(Camera2dBundle::default());
 }
 
-#[derive(Component, Debug)]
-pub struct Velocity {
-    pub value: Vec2,
-    pub face: FaceDirection,
-}
+pub struct CamPlugin;
 
-impl Velocity {
-    pub fn new(value: Vec2) -> Self {
-        Self { value, face: FaceDirection::Right }
-    }
-}
-
-#[derive(Bundle)]
-pub struct MovingObjectBundle {
-    pub velocity: Velocity,
-}
-
-fn update_position(
-    mut query: Query<(&Velocity, &mut Transform)>
-) {
-    for (vel, mut trans) in query.iter_mut() {
-        trans.translation += vel.value.extend(0.0);
-    }
-}
-
-pub struct MovementPlugin;
-
-impl Plugin for MovementPlugin {
+impl Plugin for CamPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_position);
+        app.add_systems(Startup, add_camera);
     }
 }

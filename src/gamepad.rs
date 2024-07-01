@@ -16,43 +16,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+use bevy::input::gamepad::*;
 use bevy::prelude::*;
 
-#[derive(Debug)]
-pub enum FaceDirection {
-    Left,
-    Right,
-}
+use crate::player::PlayerPlugin;
 
-#[derive(Component, Debug)]
-pub struct Velocity {
-    pub value: Vec2,
-    pub face: FaceDirection,
-}
-
-impl Velocity {
-    pub fn new(value: Vec2) -> Self {
-        Self { value, face: FaceDirection::Right }
-    }
-}
-
-#[derive(Bundle)]
-pub struct MovingObjectBundle {
-    pub velocity: Velocity,
-}
-
-fn update_position(
-    mut query: Query<(&Velocity, &mut Transform)>
+fn gamepad_system(
+    mut gamepads: ResMut<Gamepads>,
+    axes: Res<Axis<GamepadAxis>>,
+    button_inputs: Res<ButtonInput<GamepadButton>>,
+    button_axes: Res<Axis<GamepadButton>>,
 ) {
-    for (vel, mut trans) in query.iter_mut() {
-        trans.translation += vel.value.extend(0.0);
+    for gamepad in gamepads.iter() {
+        let left_stick_x = axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickX));
+        let left_stick_y = axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickY));
+        info!("{:?} left stick: ({:?}, {:?})", gamepad, left_stick_x, left_stick_y);
     }
 }
 
-pub struct MovementPlugin;
+pub struct GamepadPlugin;
 
-impl Plugin for MovementPlugin {
+impl Plugin for GamepadPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_position);
+        app.add_systems(Update, gamepad_system);
     }
 }
