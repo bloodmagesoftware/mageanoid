@@ -24,9 +24,10 @@ use crate::movement::*;
 
 const PLAYER_MOVE_SPEED: f32 = 4.0;
 
-
 pub struct PlayerPlugin;
 
+#[derive(Component, Debug)]
+pub struct Player;
 
 #[derive(Component, Debug)]
 struct AnimationIndices {
@@ -65,6 +66,7 @@ fn spawn_player(
     let animation_indices = AnimationIndices { first: 0, last: 0 };
 
     commands.spawn((
+        Player,
         SpriteSheetBundle {
             texture,
             atlas: TextureAtlas {
@@ -83,12 +85,12 @@ fn spawn_player(
 }
 
 fn player_input(
-    mut query: Query<(&mut Velocity, &mut AnimationIndices)>,
+    mut player_entity: Query<(&Player, &mut Velocity, &mut AnimationIndices)>,
     keys: Res<ButtonInput<KeyCode>>,
     gamepads: Res<Gamepads>,
     axes: Res<Axis<GamepadAxis>>,
 ) {
-    for (mut velocity, mut indices) in &mut query.iter_mut() {
+    for (_, mut velocity, mut indices) in &mut player_entity.iter_mut() {
         // keyboard x
         if keys.pressed(KeyCode::ArrowLeft) {
             velocity.value.x = -PLAYER_MOVE_SPEED;
@@ -108,19 +110,22 @@ fn player_input(
 
         // gamepad
         for gamepad in gamepads.iter() {
-            if let Some(left_stick_x) = axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickX)) {
+            if let Some(left_stick_x) =
+                axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickX))
+            {
                 if left_stick_x.abs() > 0.1 {
                     velocity.value.x = left_stick_x * PLAYER_MOVE_SPEED;
                 }
             }
 
-            if let Some(left_stick_y) = axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickY)) {
+            if let Some(left_stick_y) =
+                axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickY))
+            {
                 if left_stick_y.abs() > 0.1 {
                     velocity.value.y = left_stick_y * PLAYER_MOVE_SPEED;
                 }
             }
         }
-
 
         // face
         if velocity.value.x < 0.0 {
@@ -139,8 +144,7 @@ fn player_input(
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_systems(Startup, spawn_player)
+        app.add_systems(Startup, spawn_player)
             .add_systems(Update, animate_sprite)
             .add_systems(Update, player_input);
     }

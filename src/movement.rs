@@ -32,7 +32,10 @@ pub struct Velocity {
 
 impl Velocity {
     pub fn new(value: Vec2) -> Self {
-        Self { value, face: FaceDirection::Right }
+        Self {
+            value,
+            face: FaceDirection::Right,
+        }
     }
 }
 
@@ -41,9 +44,7 @@ pub struct MovingObjectBundle {
     pub velocity: Velocity,
 }
 
-fn update_position(
-    mut query: Query<(&Velocity, &mut Transform)>
-) {
+fn update_position(mut query: Query<(&Velocity, &mut Transform)>) {
     for (vel, mut trans) in query.iter_mut() {
         trans.translation += vel.value.extend(0.0);
     }

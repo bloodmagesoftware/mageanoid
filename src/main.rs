@@ -18,9 +18,9 @@
 
 use bevy::prelude::*;
 
-mod player;
 mod cam;
 mod movement;
+mod player;
 
 fn main() {
     App::new()
