@@ -45,6 +45,14 @@ jobs:
           <!DOCTYPE html>
           <html lang="en">
           <body>
+          <a
+            href="https://github.com/bloodmagesoftware/${{env.binary}}/blob/main/LICENSE"
+          >
+            <img
+              src="https://raw.githubusercontent.com/bloodmagesoftware/.github/main/agpl.svg"
+              alt="AGPL-3.0 license"
+            >
+          </a>
           <script type="module">
               import "./restart-audio-context.js";
               import init from "./${{env.binary}}.js";
