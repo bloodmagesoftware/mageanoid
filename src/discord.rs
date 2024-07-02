@@ -15,23 +15,3 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-use bevy::prelude::*;
-
-mod anim;
-mod cam;
-mod cat;
-mod discord;
-mod movement;
-mod player;
-
-fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .add_plugins(anim::AnimPlugin)
-        .add_plugins(cam::CamPlugin)
-        .add_plugins(cat::CatPlugin)
-        .add_plugins(movement::MovementPlugin)
-        .add_plugins(player::PlayerPlugin)
-        .run();
-}

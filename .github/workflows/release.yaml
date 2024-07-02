@@ -14,6 +14,7 @@ env:
   binary: mageanoid
   add_binaries_to_github_release: true
   #itch_target: <itch.io-username>/<game-name>
+  DISCORD_GAME_SDK_URL: https://dl-game-sdk.discordapp.net/3.2.1/discord_game_sdk.zip
 
   # Before enabling LFS, please take a look at GitHub's documentation for costs and quota limits:
   # https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-storage-and-bandwidth-usage
@@ -30,6 +31,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: ${{ env.use_git_lfs }}
+      - name: Install Discord Game SDK
+        run: |
+          curl -L -o discord_game_sdk.zip ${{ env.discord_game_sdk_url }}
+          mkdir -p $HOME/.local/discord_game_sdk/
+          unzip discord_game_sdk.zip -d $HOME/.local/discord_game_sdk/
+          export DISCORD_GAME_SDK_PATH=$HOME/.local/discord_game_sdk
+          export LD_LIBRARY_PATH=$DISCORD_GAME_SDK_PATH/lib/x86_64:$LD_LIBRARY_PATH
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-unknown-linux-gnu
@@ -79,6 +87,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: ${{ env.use_git_lfs }}
+      - name: Install Discord Game SDK
+        run: |
+          Invoke-WebRequest -Uri $env:DISCORD_GAME_SDK_URL -OutFile discord_game_sdk.zip
+          New-Item -ItemType Directory -Path $env:USERPROFILE\.local\discord_game_sdk -Force
+          Expand-Archive -Path discord_game_sdk.zip -DestinationPath $env:USERPROFILE\.local\discord_game_sdk
+          [System.Environment]::SetEnvironmentVariable('DISCORD_GAME_SDK_PATH', "$env:USERPROFILE\.local\discord_game_sdk", 'User')
+          [System.Environment]::SetEnvironmentVariable('PATH', "$env:USERPROFILE\.local\discord_game_sdk\lib\x86_64;$env:PATH", 'User')
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
@@ -125,6 +140,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: ${{ env.use_git_lfs }}
+      - name: Install Discord Game SDK
+        run: |
+          curl -L -o discord_game_sdk.zip ${{ env.discord_game_sdk_url }}
+          mkdir -p $HOME/.local/discord_game_sdk/
+          unzip discord_game_sdk.zip -d $HOME/.local/discord_game_sdk/
+          export DISCORD_GAME_SDK_PATH=$HOME/.local/discord_game_sdk
+          export DYLD_LIBRARY_PATH=$DISCORD_GAME_SDK_PATH/lib/x86_64:$DYLD_LIBRARY_PATH
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-apple-darwin
@@ -172,6 +194,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: ${{ env.use_git_lfs }}
+      - name: Install Discord Game SDK
+        run: |
+          curl -L -o discord_game_sdk.zip ${{ env.discord_game_sdk_url }}
+          mkdir -p $HOME/.local/discord_game_sdk/
+          unzip discord_game_sdk.zip -d $HOME/.local/discord_game_sdk/
+          export DISCORD_GAME_SDK_PATH=$HOME/.local/discord_game_sdk
+          export DYLD_LIBRARY_PATH=$DISCORD_GAME_SDK_PATH/lib/arm64:$DYLD_LIBRARY_PATH
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-apple-darwin
