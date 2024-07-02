@@ -64,19 +64,16 @@ fn update_position(
     mut cats: Query<(&Cat, &Transform, &mut Velocity)>,
     players: Query<(&Player, &Transform)>,
 ) {
-    match players.iter().next() {
-        Some((_, player_transform)) => {
-            for (_, cat_transform, mut cat_vel) in &mut cats.iter_mut() {
-                // calc direction from cat to player
-                let direction = player_transform.translation - cat_transform.translation;
-                if direction.length() > CAT_THRESHOLD {
-                    cat_vel.direction = direction.normalize();
-                } else {
-                    cat_vel.direction = Vec3::ZERO;
-                }
+    if let Some((_, player_transform)) = players.iter().next() {
+        for (_, cat_transform, mut cat_vel) in &mut cats.iter_mut() {
+            // calc direction from cat to player
+            let direction = player_transform.translation - cat_transform.translation;
+            if direction.length() > CAT_THRESHOLD {
+                cat_vel.direction = direction.normalize();
+            } else {
+                cat_vel.direction = Vec3::ZERO;
             }
         }
-        None => return,
     };
 }
 

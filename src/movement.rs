@@ -19,12 +19,6 @@
 use bevy::math::f32;
 use bevy::prelude::*;
 
-#[derive(Debug)]
-pub enum FaceDirection {
-    Left,
-    Right,
-}
-
 #[derive(Component, Debug)]
 pub struct Velocity {
     pub direction: Vec3,
