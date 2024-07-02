@@ -16,45 +16,45 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use bevy::math::f32;
+use std::cmp;
+
 use bevy::prelude::*;
 
-#[derive(Debug)]
-pub enum FaceDirection {
-    Left,
-    Right,
-}
-
 #[derive(Component, Debug)]
-pub struct Velocity {
-    pub direction: Vec3,
-    pub speed: f32,
+pub struct AnimationIndices {
+    pub first: usize,
+    pub last: usize,
 }
 
-impl Velocity {
-    pub fn new(direction: Vec3, speed: f32) -> Self {
-        Self { direction, speed }
+impl AnimationIndices {
+    pub fn new(first: usize, last: usize) -> Self {
+        Self { first, last }
     }
 }
 
-#[derive(Bundle)]
-pub struct MovingObjectBundle {
-    pub velocity: Velocity,
-}
+#[derive(Component, Deref, DerefMut)]
+pub struct AnimationTimer(pub Timer);
 
-fn update_position(mut query: Query<(&Velocity, &mut Transform)>, time: Res<Time>) {
-    for (vel, mut trans) in query.iter_mut() {
-        trans.translation += vel.direction.normalize_or_zero()
-            * f32::min(vel.speed, vel.direction.length() * vel.speed)
-            * time.delta_seconds();
-        trans.translation.z = -trans.translation.y;
+fn animate_sprite(
+    time: Res<Time>,
+    mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut TextureAtlas)>,
+) {
+    for (indices, mut timer, mut atlas) in &mut query {
+        timer.tick(time.delta());
+        if timer.just_finished() {
+            atlas.index = if atlas.index == indices.last {
+                indices.first
+            } else {
+                cmp::min(atlas.index + 1, indices.last)
+            };
+        }
     }
 }
 
-pub struct MovementPlugin;
+pub struct AnimPlugin;
 
-impl Plugin for MovementPlugin {
+impl Plugin for AnimPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_position);
+        app.add_systems(Update, animate_sprite);
     }
 }

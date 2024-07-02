@@ -18,29 +18,31 @@
 
 use bevy::prelude::*;
 
-use crate::anim::*;
+use crate::anim::{AnimationIndices, AnimationTimer};
 use crate::movement::*;
+use crate::player::Player;
 
-const PLAYER_MOVE_SPEED: f32 = 150.0;
+const CAT_SPEED: f32 = 75.0;
+const CAT_THRESHOLD: f32 = 100.0;
 
-pub struct PlayerPlugin;
+pub struct CatPlugin;
 
 #[derive(Component, Debug)]
-pub struct Player;
+pub struct Cat;
 
-fn spawn_player(
+fn spawn_cat(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
-    let texture = asset_server.load("sprites/mage_walk.png");
+    let texture = asset_server.load("sprites/cat_walk.png");
     let layout = TextureAtlasLayout::from_grid(Vec2::new(64.0, 64.0), 4, 1, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
     let animation_indices = AnimationIndices::new(0, 0);
 
     commands.spawn((
-        Player,
+        Cat,
         SpriteSheetBundle {
             texture,
             atlas: TextureAtlas {
@@ -48,60 +50,38 @@ fn spawn_player(
                 index: animation_indices.first,
             },
             transform: Transform::from_scale(Vec3::splat(2.0)),
-            ..default()
+            ..Default::default()
         },
         animation_indices,
         AnimationTimer(Timer::from_seconds(0.25, TimerMode::Repeating)),
         MovingObjectBundle {
-            velocity: Velocity::new(Vec3::new(0.0, 0.0, 0.0), PLAYER_MOVE_SPEED),
+            velocity: Velocity::new(Vec3::new(0.0, 0.0, 0.0), CAT_SPEED),
         },
     ));
 }
 
-fn player_input(
-    mut player_entity: Query<(&Player, &mut Velocity, &mut AnimationIndices)>,
-    keys: Res<ButtonInput<KeyCode>>,
-    gamepads: Res<Gamepads>,
-    axes: Res<Axis<GamepadAxis>>,
+fn update_position(
+    mut cats: Query<(&Cat, &Transform, &mut Velocity)>,
+    players: Query<(&Player, &Transform)>,
 ) {
-    for (_, mut velocity, mut indices) in &mut player_entity.iter_mut() {
-        // keyboard x
-        if keys.pressed(KeyCode::ArrowLeft) {
-            velocity.direction.x = -1.0;
-        } else if keys.pressed(KeyCode::ArrowRight) {
-            velocity.direction.x = 1.0;
-        } else {
-            velocity.direction.x = 0.0;
-        }
-
-        if keys.pressed(KeyCode::ArrowUp) {
-            velocity.direction.y = 1.0;
-        } else if keys.pressed(KeyCode::ArrowDown) {
-            velocity.direction.y = -1.0;
-        } else {
-            velocity.direction.y = 0.0;
-        }
-
-        // gamepad
-        for gamepad in gamepads.iter() {
-            if let Some(left_stick_x) =
-                axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickX))
-            {
-                if left_stick_x.abs() > 0.1 {
-                    velocity.direction.x += left_stick_x;
-                }
-            }
-
-            if let Some(left_stick_y) =
-                axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickY))
-            {
-                if left_stick_y.abs() > 0.1 {
-                    velocity.direction.y += left_stick_y;
+    match players.iter().next() {
+        Some((_, player_transform)) => {
+            for (_, cat_transform, mut cat_vel) in &mut cats.iter_mut() {
+                // calc direction from cat to player
+                let direction = player_transform.translation - cat_transform.translation;
+                if direction.length() > CAT_THRESHOLD {
+                    cat_vel.direction = direction.normalize();
+                } else {
+                    cat_vel.direction = Vec3::ZERO;
                 }
             }
         }
+        None => return,
+    };
+}
 
-        // face
+fn update_animation(mut cats: Query<(&Cat, &Velocity, &mut AnimationIndices)>) {
+    for (_, velocity, mut indices) in &mut cats {
         if velocity.direction.x < 0.0 {
             indices.first = 0;
             indices.last = 1;
@@ -114,9 +94,10 @@ fn player_input(
     }
 }
 
-impl Plugin for PlayerPlugin {
+impl Plugin for CatPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_player)
-            .add_systems(Update, player_input);
+        app.add_systems(Startup, spawn_cat)
+            .add_systems(Update, update_position)
+            .add_systems(Update, update_animation);
     }
 }

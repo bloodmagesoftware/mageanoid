@@ -18,15 +18,19 @@
 
 use bevy::prelude::*;
 
+mod anim;
 mod cam;
+mod cat;
 mod movement;
 mod player;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .add_plugins(player::PlayerPlugin)
-        .add_plugins(movement::MovementPlugin)
+        .add_plugins(anim::AnimPlugin)
         .add_plugins(cam::CamPlugin)
+        .add_plugins(cat::CatPlugin)
+        .add_plugins(movement::MovementPlugin)
+        .add_plugins(player::PlayerPlugin)
         .run();
 }
