@@ -45,48 +45,16 @@ jobs:
           <!DOCTYPE html>
           <html lang="en">
           <body>
-          <p class="banner">
-            <a
-              href="https://bloodmagesoftware.github.io/"
-              target="_blank"
+          <span
+            onclick="document.querySelector('canvas').requestFullscreen()"
+            class="fullscreen"
+          >
+            <img
+              src="https://icons.getbootstrap.com/assets/icons/arrows-fullscreen.svg"
+              height="32"
+              alt="Fullscreen"
             >
-              <img
-                src="https://bloodmagesoftware.github.io/favicon.svg"
-                height="64"
-                alt="Blood Mage Software"
-              >
-            </a>
-            <a
-              href="https://github.com/bloodmagesoftware/${{env.binary}}/blob/main/LICENSE"
-              target="_blank"
-            >
-              <img
-                src="https://raw.githubusercontent.com/bloodmagesoftware/.github/main/agpl.svg"
-                height="64"
-                alt="AGPL-3.0 license"
-              >
-            </a>
-            <a
-              href="https://bevyengine.org/"
-              target="_blank"
-            >
-              <img
-                src="https://raw.githubusercontent.com/bevyengine/bevy/latest/assets/branding/bevy_logo_dark.svg"
-                height="64"
-                alt="Bevy Engine"
-              >
-            </a>
-            <span
-              onclick="document.querySelector('canvas').requestFullscreen()"
-              style="cursor: pointer; background-color: white; padding: 8px; border-radius: 8px"
-            >
-              <img
-                src="https://icons.getbootstrap.com/assets/icons/arrows-fullscreen.svg"
-                height="48"
-                alt="Fullscreen"
-              >
-            </span>
-          </p>
+          </span>
           <script type="module">
               import "./restart-audio-context.js";
               import init from "./${{env.binary}}.js";
@@ -110,24 +78,35 @@ jobs:
                   display: block;
                   position: relative;
                   width: 100dvw !important;
-                  height: calc(100dvh - 64px) !important;
+                  height: 100dvh !important;
                   min-width: unset !important;
                   min-height: unset !important;
                   outline: none;
               }
 
-              .banner {
-                  display: flex;
-                  justify-content: space-around;
-                  flex-wrap: wrap;
-                  flex-direction: row;
-                  height: 64px;
-                  width: 100dvw;
+              .fullscreen {
+                  cursor: pointer;
+                  background-color: #fff4;
+                  backdrop-filter: blur(4px);
+                  padding: 8px;
+                  border-radius: 8px;
+                  position: fixed;
+                  top: 8px;
+                  right: 8px;
+                  z-index: 1000;
+                  width: 48px;
+                  height: 48px;
+              }
+
+              .fullscreen:hover {
+                  background-color: #fff8;
               }
 
               * {
                   user-select: none;
                   box-sizing: border-box;
+                  margin: 0;
+                  padding: 0;
               }
           </style>
           </body>
