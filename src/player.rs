@@ -111,16 +111,12 @@ fn player_input(
             if let Some(left_stick_x) = axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickX)) {
                 if left_stick_x.abs() > 0.1 {
                     velocity.value.x = left_stick_x * PLAYER_MOVE_SPEED;
-                } else {
-                    velocity.value.x = 0.0;
                 }
             }
 
             if let Some(left_stick_y) = axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickY)) {
                 if left_stick_y.abs() > 0.1 {
                     velocity.value.y = left_stick_y * PLAYER_MOVE_SPEED;
-                } else {
-                    velocity.value.y = 0.0;
                 }
             }
         }
