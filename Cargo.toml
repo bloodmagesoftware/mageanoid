@@ -5,10 +5,10 @@ edition = "2021"
 license-file = "LICENSE"
 
 [dependencies]
-bevy = { version = "0.13.2", features = ["webgpu"] }
+bevy = { version = "0.13.2" }
 
 [dev-dependencies]
-bevy = { version = "0.13.2", features = ["webgpu", "dynamic_linking"] }
+bevy = { version = "0.13.2", features = ["dynamic_linking"] }
 
 [profile.dev]
 opt-level = 0
