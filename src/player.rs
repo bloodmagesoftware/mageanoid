@@ -79,7 +79,7 @@ fn spawn_player(
         animation_indices,
         AnimationTimer(Timer::from_seconds(0.25, TimerMode::Repeating)),
         MovingObjectBundle {
-            velocity: Velocity::new(Vec2::new(0.0, 0.0)),
+            velocity: Velocity::new(Vec3::new(0.0, 0.0, 0.0), PLAYER_MOVE_SPEED),
         },
     ));
 }
@@ -93,19 +93,19 @@ fn player_input(
     for (_, mut velocity, mut indices) in &mut player_entity.iter_mut() {
         // keyboard x
         if keys.pressed(KeyCode::ArrowLeft) {
-            velocity.value.x = -PLAYER_MOVE_SPEED;
+            velocity.direction.x = -1.0;
         } else if keys.pressed(KeyCode::ArrowRight) {
-            velocity.value.x = PLAYER_MOVE_SPEED;
+            velocity.direction.x = 1.0;
         } else {
-            velocity.value.x = 0.0;
+            velocity.direction.x = 0.0;
         }
 
         if keys.pressed(KeyCode::ArrowUp) {
-            velocity.value.y = PLAYER_MOVE_SPEED;
+            velocity.direction.y = 1.0;
         } else if keys.pressed(KeyCode::ArrowDown) {
-            velocity.value.y = -PLAYER_MOVE_SPEED;
+            velocity.direction.y = -1.0;
         } else {
-            velocity.value.y = 0.0;
+            velocity.direction.y = 0.0;
         }
 
         // gamepad
@@ -114,7 +114,7 @@ fn player_input(
                 axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickX))
             {
                 if left_stick_x.abs() > 0.1 {
-                    velocity.value.x = left_stick_x * PLAYER_MOVE_SPEED;
+                    velocity.direction.x += left_stick_x;
                 }
             }
 
@@ -122,17 +122,17 @@ fn player_input(
                 axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickY))
             {
                 if left_stick_y.abs() > 0.1 {
-                    velocity.value.y = left_stick_y * PLAYER_MOVE_SPEED;
+                    velocity.direction.y += left_stick_y;
                 }
             }
         }
 
         // face
-        if velocity.value.x < 0.0 {
+        if velocity.direction.x < 0.0 {
             velocity.face = FaceDirection::Right;
             indices.first = 0;
             indices.last = 1;
-        } else if velocity.value.x > 0.0 {
+        } else if velocity.direction.x > 0.0 {
             velocity.face = FaceDirection::Left;
             indices.first = 2;
             indices.last = 3;

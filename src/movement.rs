@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+use bevy::math::f32;
 use bevy::prelude::*;
 
 #[derive(Debug)]
@@ -26,14 +27,16 @@ pub enum FaceDirection {
 
 #[derive(Component, Debug)]
 pub struct Velocity {
-    pub value: Vec2,
+    pub direction: Vec3,
+    pub speed: f32,
     pub face: FaceDirection,
 }
 
 impl Velocity {
-    pub fn new(value: Vec2) -> Self {
+    pub fn new(direction: Vec3, speed: f32) -> Self {
         Self {
-            value,
+            direction,
+            speed,
             face: FaceDirection::Right,
         }
     }
@@ -46,7 +49,8 @@ pub struct MovingObjectBundle {
 
 fn update_position(mut query: Query<(&Velocity, &mut Transform)>) {
     for (vel, mut trans) in query.iter_mut() {
-        trans.translation += vel.value.extend(0.0);
+        trans.translation += vel.direction.normalize_or_zero()
+            * f32::min(vel.speed, vel.direction.length() * vel.speed);
     }
 }
 
