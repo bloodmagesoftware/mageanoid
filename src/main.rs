@@ -21,16 +21,30 @@ use bevy::prelude::*;
 mod anim;
 mod cam;
 mod cat;
+mod fps;
 mod movement;
 mod player;
 
+#[cfg(debug_assertions)]
+fn debug(app: &mut App) -> &mut App {
+    println!("Debug mode");
+    return app.add_plugins(fps::FpsPlugin);
+}
+
+#[cfg(not(debug_assertions))]
+fn debug(app: &mut App) -> &mut App {
+    return app;
+}
+
 fn main() {
-    App::new()
-        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .add_plugins(anim::AnimPlugin)
-        .add_plugins(cam::CamPlugin)
-        .add_plugins(cat::CatPlugin)
-        .add_plugins(movement::MovementPlugin)
-        .add_plugins(player::PlayerPlugin)
-        .run();
+    debug(
+        App::new()
+            .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+            .add_plugins(anim::AnimPlugin)
+            .add_plugins(cam::CamPlugin)
+            .add_plugins(cat::CatPlugin)
+            .add_plugins(movement::MovementPlugin)
+            .add_plugins(player::PlayerPlugin),
+    )
+    .run();
 }
