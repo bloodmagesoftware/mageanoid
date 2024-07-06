@@ -43,18 +43,18 @@ fn spawn_cat(
 
     commands.spawn((
         Cat,
-        SpriteSheetBundle {
+        SpriteBundle {
             texture,
-            atlas: TextureAtlas {
-                layout: texture_atlas_layout,
-                index: animation_indices.first,
-            },
             transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(Vec3::new(
                 CAT_THRESHOLD,
                 CAT_THRESHOLD,
                 0.0,
             )),
             ..default()
+        },
+        TextureAtlas {
+            layout: texture_atlas_layout,
+            index: animation_indices.first,
         },
         animation_indices,
         AnimationTimer(Timer::from_seconds(0.25, TimerMode::Repeating)),
