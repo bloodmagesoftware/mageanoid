@@ -34,21 +34,21 @@ fn spawn_player(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     let texture = asset_server.load("sprites/mage_walk.png");
-    let layout = TextureAtlasLayout::from_grid(Vec2::new(64.0, 64.0), 4, 1, None, None);
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(64, 64), 4, 1, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
     let animation_indices = AnimationIndices::new(0, 0);
 
     commands.spawn((
         Player,
-        SpriteSheetBundle {
+        SpriteBundle {
             texture,
-            atlas: TextureAtlas {
-                layout: texture_atlas_layout,
-                index: animation_indices.first,
-            },
             transform: Transform::from_scale(Vec3::splat(2.0)),
             ..default()
+        },
+        TextureAtlas {
+            layout: texture_atlas_layout,
+            index: animation_indices.first,
         },
         animation_indices,
         AnimationTimer(Timer::from_seconds(0.25, TimerMode::Repeating)),

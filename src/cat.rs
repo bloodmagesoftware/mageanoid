@@ -36,7 +36,7 @@ fn spawn_cat(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     let texture = asset_server.load("sprites/cat_walk.png");
-    let layout = TextureAtlasLayout::from_grid(Vec2::new(64.0, 64.0), 4, 1, None, None);
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(64, 64), 4, 1, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
     let animation_indices = AnimationIndices::new(0, 0);
