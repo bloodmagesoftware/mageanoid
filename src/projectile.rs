@@ -33,8 +33,8 @@ pub struct ProjectileBundle {
 
 impl ProjectileBundle {
     pub fn new(
-        asset_server: Res<AssetServer>,
-        mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+        asset_server: &Res<AssetServer>,
+        texture_atlas_layouts: &mut ResMut<Assets<TextureAtlasLayout>>,
         position: Vec3,
         direction: Vec2,
     ) -> Self {

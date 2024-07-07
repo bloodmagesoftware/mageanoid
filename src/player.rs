@@ -65,7 +65,7 @@ fn player_projectile(
     mut mousebtn_evr: EventReader<MouseButtonInput>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+    mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 
     // cursor click
     windows: Query<&Window>,
@@ -83,12 +83,11 @@ fn player_projectile(
                 {
                     let direction = (world_position - transform.translation().xy()).normalize();
                     commands.spawn(ProjectileBundle::new(
-                        asset_server,
-                        texture_atlas_layouts,
+                        &asset_server,
+                        &mut texture_atlas_layouts,
                         transform.translation(),
                         direction,
                     ));
-                    return;
                 }
             }
         }
