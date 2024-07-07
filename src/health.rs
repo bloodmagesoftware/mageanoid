@@ -21,15 +21,11 @@ use bevy::prelude::*;
 #[derive(Component, Debug)]
 pub struct Health {
     pub health: i32,
-    pub max_health: i32,
 }
 
 impl Health {
     pub fn new(max_health: i32) -> Self {
-        Self {
-            health: max_health,
-            max_health,
-        }
+        Self { health: max_health }
     }
 
     /**
@@ -38,10 +34,6 @@ impl Health {
     pub fn damage(&mut self, damage: i32) -> bool {
         self.health = (self.health - damage).max(0);
         self.health == 0
-    }
-
-    pub fn heal(&mut self, heal: i32) {
-        self.health = (self.health + heal).min(self.max_health);
     }
 }
 
