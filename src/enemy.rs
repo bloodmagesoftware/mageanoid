@@ -18,68 +18,72 @@
 
 use bevy::prelude::*;
 
-use crate::anim::{AnimatedSpriteBundle, AnimationIndices, AnimationTimer};
+use crate::anim::{AnimationIndices, AnimationTimer};
 use crate::movement::*;
 use crate::player::Player;
 
-const CAT_SPEED: f32 = 75.0;
-const CAT_THRESHOLD: f32 = 100.0;
+const ENEMY_SPEED: f32 = 40.0;
+const ENEMY_THRESHOLD: f32 = ENEMY_SPEED;
 
-pub struct CatPlugin;
+pub struct EnemyPlugin;
 
 #[derive(Component, Debug)]
-pub struct Cat;
+pub struct Enemy;
 
-fn spawn_cat(
+fn spawn_enemy(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+    // players: Query<(&Player, &Transform)>,
 ) {
-    let texture = asset_server.load("sprites/cat_walk.png");
-    let layout = TextureAtlasLayout::from_grid(UVec2::new(64, 64), 4, 1, None, None);
+    // if let Ok((_, player_transform)) = players.get_single() {}
+
+    let texture = asset_server.load("sprites/skeleton.png");
+    let layout = TextureAtlasLayout::from_grid(UVec2::new(64, 64), 4, 3, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
     let animation_indices = AnimationIndices::new(0, 0);
 
     commands.spawn((
-        Cat,
-        AnimatedSpriteBundle {
-            sprite: SpriteBundle {
-                texture,
-                transform: Transform::from_scale(Vec3::splat(2.0)),
-                ..default()
-            },
-            atlas: TextureAtlas {
-                layout: texture_atlas_layout,
-                index: animation_indices.first,
-            },
-            indices: animation_indices,
-            timer: AnimationTimer(Timer::from_seconds(0.25, TimerMode::Repeating)),
+        Enemy,
+        SpriteBundle {
+            texture,
+            transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(Vec3::new(
+                0.0,
+                0.0,
+                0.0,
+            )),
+            ..default()
         },
+        TextureAtlas {
+            layout: texture_atlas_layout,
+            index: animation_indices.first,
+        },
+        animation_indices,
+        AnimationTimer(Timer::from_seconds(0.25, TimerMode::Repeating)),
         MovingObjectBundle {
-            velocity: Velocity::from_vec3(Vec3::new(0.0, 0.0, 0.0), CAT_SPEED),
+            velocity: Velocity::from_vec3(Vec3::new(0.0, 0.0, 0.0), ENEMY_SPEED),
         },
     ));
 }
 
 fn update_position(
-    mut cats: Query<(&Cat, &Transform, &mut Velocity)>,
+    mut enemies: Query<(&Enemy, &Transform, &mut Velocity)>,
     players: Query<(&Player, &Transform)>,
 ) {
     if let Ok((_, player_transform)) = players.get_single() {
-        for (_, cat_transform, mut cat_vel) in &mut cats.iter_mut() {
-            // calc direction from cat to player
-            let direction = player_transform.translation - cat_transform.translation;
-            if direction.length() > CAT_THRESHOLD {
-                cat_vel.direction = direction.normalize();
+        for (_, enemy_transform, mut enemy_vel) in &mut enemies.iter_mut() {
+            let direction = player_transform.translation - enemy_transform.translation;
+            if direction.length() > ENEMY_THRESHOLD {
+                enemy_vel.direction = direction.normalize();
             } else {
-                cat_vel.direction = Vec3::ZERO;
+                enemy_vel.direction = Vec3::ZERO;
             }
         }
-    };
+    }
 }
 
-fn update_animation(mut cats: Query<(&Cat, &Velocity, &mut AnimationIndices)>) {
+fn update_animation(mut cats: Query<(&Enemy, &Velocity, &mut AnimationIndices)>) {
     for (_, velocity, mut indices) in &mut cats {
         if velocity.direction.x < 0.0 {
             indices.first = 0;
@@ -93,9 +97,9 @@ fn update_animation(mut cats: Query<(&Cat, &Velocity, &mut AnimationIndices)>) {
     }
 }
 
-impl Plugin for CatPlugin {
+impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_cat)
+        app.add_systems(Startup, spawn_enemy)
             .add_systems(Update, update_position)
             .add_systems(Update, update_animation);
     }

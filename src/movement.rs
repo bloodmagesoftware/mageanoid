@@ -26,12 +26,16 @@ pub struct Velocity {
 }
 
 impl Velocity {
-    pub fn new(direction: Vec3, speed: f32) -> Self {
+    pub fn from_vec3(direction: Vec3, speed: f32) -> Self {
         Self { direction, speed }
+    }
+
+    pub fn from_vec2(direction: Vec2, speed: f32) -> Self {
+        Self { direction: Vec3::new(direction.x, direction.y, 0.0), speed }
     }
 }
 
-#[derive(Bundle)]
+#[derive(Bundle, Debug)]
 pub struct MovingObjectBundle {
     pub velocity: Velocity,
 }
@@ -41,7 +45,6 @@ fn update_position(mut query: Query<(&Velocity, &mut Transform)>, time: Res<Time
         trans.translation += vel.direction.normalize_or_zero()
             * f32::min(vel.speed, vel.direction.length() * vel.speed)
             * time.delta_seconds();
-        trans.translation.z = -trans.translation.y;
     }
 }
 

@@ -16,10 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+use bevy::input::mouse::MouseButtonInput;
 use bevy::prelude::*;
 
 use crate::anim::*;
 use crate::movement::*;
+use crate::projectile::ProjectileBundle;
 
 const PLAYER_MOVE_SPEED: f32 = 150.0;
 
@@ -53,31 +55,61 @@ fn spawn_player(
         animation_indices,
         AnimationTimer(Timer::from_seconds(0.25, TimerMode::Repeating)),
         MovingObjectBundle {
-            velocity: Velocity::new(Vec3::new(0.0, 0.0, 0.0), PLAYER_MOVE_SPEED),
+            velocity: Velocity::from_vec3(Vec3::new(0.0, 0.0, 0.0), PLAYER_MOVE_SPEED),
         },
     ));
 }
 
-fn player_input(
-    mut player_entity: Query<(&Player, &mut Velocity, &mut AnimationIndices)>,
+fn player_projectile(
+    players: Query<(&Player, &GlobalTransform)>,
+    mut mousebtn_evr: EventReader<MouseButtonInput>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+
+    // cursor click
+    windows: Query<&Window>,
+    camera_q: Query<(&Camera, &GlobalTransform)>,
+) {
+    for (_, transform) in &mut players.iter() {
+        for ev in mousebtn_evr.read() {
+            if ev.state.is_pressed() && ev.button == MouseButton::Left {
+                let window = windows.single();
+                let (camera, camera_transform) = camera_q.single();
+
+                if let Some(world_position) = window
+                    .cursor_position()
+                    .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor))
+                {
+                    let direction = (world_position - transform.translation().xy()).normalize();
+                    commands.spawn(ProjectileBundle::new(asset_server, texture_atlas_layouts, transform.translation(), direction));
+                    return;
+                }
+            }
+        }
+    }
+}
+
+fn player_movement(
+    mut players: Query<(&Player, &mut Velocity, &mut AnimationIndices)>,
     keys: Res<ButtonInput<KeyCode>>,
     gamepads: Res<Gamepads>,
     axes: Res<Axis<GamepadAxis>>,
 ) {
-    for (_, mut velocity, mut indices) in &mut player_entity.iter_mut() {
+    for (_, mut velocity, mut indices) in &mut players.iter_mut() {
         // keyboard x
-        if keys.pressed(KeyCode::ArrowLeft) || keys.pressed(KeyCode::KeyA) {
+        if keys.any_pressed([KeyCode::ArrowLeft, KeyCode::KeyA]) {
             velocity.direction.x = -1.0;
-        } else if keys.pressed(KeyCode::ArrowRight) || keys.pressed(KeyCode::KeyD) {
+        } else if keys.any_pressed([KeyCode::ArrowRight, KeyCode::KeyD]) {
             velocity.direction.x = 1.0;
         } else {
             velocity.direction.x = 0.0;
         }
 
         // keyboard y
-        if keys.pressed(KeyCode::ArrowUp) || keys.pressed(KeyCode::KeyW) {
+        if keys.any_pressed([KeyCode::ArrowUp, KeyCode::KeyW]) {
             velocity.direction.y = 1.0;
-        } else if keys.pressed(KeyCode::ArrowDown) || keys.pressed(KeyCode::KeyS) {
+        } else if keys.any_pressed([KeyCode::ArrowDown, KeyCode::KeyS]) {
             velocity.direction.y = -1.0;
         } else {
             velocity.direction.y = 0.0;
@@ -118,6 +150,7 @@ fn player_input(
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_player)
-            .add_systems(Update, player_input);
+            .add_systems(Update, player_movement)
+            .add_systems(Update, player_projectile);
     }
 }

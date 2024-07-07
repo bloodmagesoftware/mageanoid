@@ -32,7 +32,7 @@ impl AnimationIndices {
     }
 }
 
-#[derive(Component, Deref, DerefMut)]
+#[derive(Component, Deref, DerefMut, Debug)]
 pub struct AnimationTimer(pub Timer);
 
 fn animate_sprite(
@@ -49,6 +49,14 @@ fn animate_sprite(
             };
         }
     }
+}
+
+#[derive(Bundle, Debug)]
+pub struct AnimatedSpriteBundle {
+    pub sprite: SpriteBundle,
+    pub indices: AnimationIndices,
+    pub timer: AnimationTimer,
+    pub atlas: TextureAtlas,
 }
 
 pub struct AnimPlugin;

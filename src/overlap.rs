@@ -18,27 +18,16 @@
 
 use bevy::prelude::*;
 
-mod anim;
-mod cam;
-mod cat;
-mod enemy;
-mod movement;
-mod overlap;
-mod player;
-mod projectile;
+fn overlap(mut query: Query<&mut Transform>) {
+    for mut transform in &mut query.iter_mut() {
+        transform.translation.z = -transform.translation.y;
+    }
+}
 
-fn main() {
-    let mut app = App::new();
+pub struct OverlapPlugin;
 
-    app.add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .add_plugins(anim::AnimPlugin)
-        .add_plugins(cam::CamPlugin)
-        .add_plugins(cat::CatPlugin)
-        .add_plugins(enemy::EnemyPlugin)
-        .add_plugins(movement::MovementPlugin)
-        .add_plugins(overlap::OverlapPlugin)
-        .add_plugins(player::PlayerPlugin)
-        .add_plugins(projectile::ProjectilePlugin);
-
-    app.run();
+impl Plugin for OverlapPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, overlap);
+    }
 }
