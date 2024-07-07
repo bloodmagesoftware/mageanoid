@@ -66,8 +66,21 @@ impl ProjectileBundle {
     }
 }
 
+fn projectile_out_of_bounds(
+    projectiles_q: Query<(Entity, &ViewVisibility), With<Projectile>>,
+    mut commands: Commands,
+) {
+    for (projectile_entity, view_visibility) in projectiles_q.iter() {
+        if !view_visibility.get() {
+            commands.entity(projectile_entity).despawn();
+        }
+    }
+}
+
 pub struct ProjectilePlugin;
 
 impl Plugin for ProjectilePlugin {
-    fn build(&self, _app: &mut App) {}
+    fn build(&self, _app: &mut App) {
+        _app.add_systems(Update, projectile_out_of_bounds);
+    }
 }

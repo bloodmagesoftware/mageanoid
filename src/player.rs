@@ -68,14 +68,21 @@ fn player_projectile(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 
     // cursor click
-    windows: Query<&Window>,
+    windows_q: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
 ) {
     for (_, transform) in &mut players.iter() {
         for ev in mousebtn_evr.read() {
             if ev.state.is_pressed() && ev.button == MouseButton::Left {
-                let window = windows.single();
-                let (camera, camera_transform) = camera_q.single();
+                let window = match windows_q.get_single() {
+                    Ok(window) => window,
+                    Err(_) => return,
+                };
+
+                let (camera, camera_transform) = match camera_q.get_single() {
+                    Ok(cam) => cam,
+                    Err(_) => return,
+                };
 
                 if let Some(world_position) = window
                     .cursor_position()
