@@ -17,33 +17,36 @@
  */
 
 use bevy::prelude::*;
-use bevy_prng::WyRand;
-use bevy_rand::prelude::EntropyPlugin;
 
-mod anim;
-mod cam;
-mod cat;
-mod enemy;
-mod health;
-mod movement;
-mod overlap;
-mod player;
-mod projectile;
+#[derive(Component, Debug)]
+pub struct Health {
+    pub health: i32,
+    pub max_health: i32,
+}
 
-fn main() {
-    let mut app = App::new();
+impl Health {
+    pub fn new(max_health: i32) -> Self {
+        Self {
+            health: max_health,
+            max_health,
+        }
+    }
 
-    app.add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .add_plugins(EntropyPlugin::<WyRand>::default())
-        .add_plugins(anim::AnimPlugin)
-        .add_plugins(cam::CamPlugin)
-        .add_plugins(cat::CatPlugin)
-        .add_plugins(enemy::EnemyPlugin)
-        .add_plugins(health::HealthPlugin)
-        .add_plugins(movement::MovementPlugin)
-        .add_plugins(overlap::OverlapPlugin)
-        .add_plugins(player::PlayerPlugin)
-        .add_plugins(projectile::ProjectilePlugin);
+    /**
+     * Returns true if the entity is dead
+     */
+    pub fn damage(&mut self, damage: i32) -> bool {
+        self.health = (self.health - damage).max(0);
+        self.health == 0
+    }
 
-    app.run();
+    pub fn heal(&mut self, heal: i32) {
+        self.health = (self.health + heal).min(self.max_health);
+    }
+}
+
+pub struct HealthPlugin;
+
+impl Plugin for HealthPlugin {
+    fn build(&self, _app: &mut App) {}
 }

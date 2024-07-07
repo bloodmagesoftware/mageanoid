@@ -23,7 +23,7 @@ use crate::anim::*;
 use crate::movement::*;
 use crate::projectile::ProjectileBundle;
 
-const PLAYER_MOVE_SPEED: f32 = 150.0;
+const PLAYER_MOVE_SPEED: f32 = 175.0;
 
 pub struct PlayerPlugin;
 
@@ -108,8 +108,9 @@ fn player_movement(
     keys: Res<ButtonInput<KeyCode>>,
     gamepads: Res<Gamepads>,
     axes: Res<Axis<GamepadAxis>>,
+    buttons: Res<ButtonInput<GamepadButton>>,
 ) {
-    for (mut player_velocity, mut player_indices) in &mut player_q.iter_mut() {
+    for (mut player_velocity, mut player_indices) in player_q.iter_mut() {
         // keyboard x
         if keys.any_pressed([KeyCode::ArrowLeft, KeyCode::KeyA]) {
             player_velocity.direction.x = -1.0;
@@ -128,8 +129,15 @@ fn player_movement(
             player_velocity.direction.y = 0.0;
         }
 
-        // gamepad
-        for gamepad in gamepads.iter() {
+        // keyboard sprint
+        if keys.any_pressed([KeyCode::ShiftLeft, KeyCode::ShiftRight]) {
+            player_velocity.speed = PLAYER_MOVE_SPEED * 2.0;
+        } else {
+            player_velocity.speed = PLAYER_MOVE_SPEED;
+        }
+
+        if let Some(gamepad) = gamepads.iter().next() {
+            // left stick x
             if let Some(left_stick_x) =
                 axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickX))
             {
@@ -138,6 +146,7 @@ fn player_movement(
                 }
             }
 
+            // left stick y
             if let Some(left_stick_y) =
                 axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickY))
             {
@@ -145,9 +154,18 @@ fn player_movement(
                     player_velocity.direction.y += left_stick_y;
                 }
             }
+
+            // sprint with face button bottom
+            let sprint_button = GamepadButton {
+                gamepad,
+                button_type: GamepadButtonType::South,
+            };
+            if buttons.pressed(sprint_button) {
+                player_velocity.speed = PLAYER_MOVE_SPEED * 2.0;
+            }
         }
 
-        // face
+        // animation face direction
         if player_velocity.direction.x < 0.0 {
             player_indices.first = 0;
             player_indices.last = 1;
