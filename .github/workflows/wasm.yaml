@@ -2,8 +2,12 @@ name: Wasm
 
 on:
   push:
-    tags:
-      - "*"
+    paths:
+      - "src/**"
+      - "Cargo.toml"
+      - ".github/workflows/wasm.yaml"
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
