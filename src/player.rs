@@ -66,17 +66,18 @@ fn player_input(
 ) {
     for (_, mut velocity, mut indices) in &mut player_entity.iter_mut() {
         // keyboard x
-        if keys.pressed(KeyCode::ArrowLeft) {
+        if keys.pressed(KeyCode::ArrowLeft) || keys.pressed(KeyCode::KeyA) {
             velocity.direction.x = -1.0;
-        } else if keys.pressed(KeyCode::ArrowRight) {
+        } else if keys.pressed(KeyCode::ArrowRight) || keys.pressed(KeyCode::KeyD) {
             velocity.direction.x = 1.0;
         } else {
             velocity.direction.x = 0.0;
         }
 
-        if keys.pressed(KeyCode::ArrowUp) {
+        // keyboard y
+        if keys.pressed(KeyCode::ArrowUp) || keys.pressed(KeyCode::KeyW) {
             velocity.direction.y = 1.0;
-        } else if keys.pressed(KeyCode::ArrowDown) {
+        } else if keys.pressed(KeyCode::ArrowDown) || keys.pressed(KeyCode::KeyS) {
             velocity.direction.y = -1.0;
         } else {
             velocity.direction.y = 0.0;
