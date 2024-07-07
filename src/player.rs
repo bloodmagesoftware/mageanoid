@@ -82,7 +82,12 @@ fn player_projectile(
                     .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor))
                 {
                     let direction = (world_position - transform.translation().xy()).normalize();
-                    commands.spawn(ProjectileBundle::new(asset_server, texture_atlas_layouts, transform.translation(), direction));
+                    commands.spawn(ProjectileBundle::new(
+                        asset_server,
+                        texture_atlas_layouts,
+                        transform.translation(),
+                        direction,
+                    ));
                     return;
                 }
             }

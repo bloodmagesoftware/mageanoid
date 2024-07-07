@@ -48,11 +48,8 @@ fn spawn_enemy(
         Enemy,
         SpriteBundle {
             texture,
-            transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(Vec3::new(
-                0.0,
-                0.0,
-                0.0,
-            )),
+            transform: Transform::from_scale(Vec3::splat(2.0))
+                .with_translation(Vec3::new(0.0, 0.0, 0.0)),
             ..default()
         },
         TextureAtlas {

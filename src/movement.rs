@@ -31,7 +31,10 @@ impl Velocity {
     }
 
     pub fn from_vec2(direction: Vec2, speed: f32) -> Self {
-        Self { direction: Vec3::new(direction.x, direction.y, 0.0), speed }
+        Self {
+            direction: Vec3::new(direction.x, direction.y, 0.0),
+            speed,
+        }
     }
 }
 
