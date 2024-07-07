@@ -28,7 +28,17 @@ const PLAYER_MOVE_SPEED: f32 = 175.0;
 pub struct PlayerPlugin;
 
 #[derive(Component, Debug)]
-pub struct Player;
+pub struct Player {
+    pub projectile_spawn_timer: Timer,
+}
+
+impl Default for Player {
+    fn default() -> Self {
+        Self {
+            projectile_spawn_timer: Timer::from_seconds(0.2, TimerMode::Once),
+        }
+    }
+}
 
 fn spawn_player(
     mut commands: Commands,
@@ -42,7 +52,7 @@ fn spawn_player(
     let animation_indices = AnimationIndices::new(0, 0);
 
     commands.spawn((
-        Player,
+        Player::default(),
         SpriteBundle {
             texture,
             transform: Transform::from_scale(Vec3::splat(2.0)),
@@ -61,17 +71,27 @@ fn spawn_player(
 }
 
 fn player_projectile(
-    player_transform_q: Query<&GlobalTransform, With<Player>>,
-    mut mousebtn_evr: EventReader<MouseButtonInput>,
+    mut player_q: Query<(&mut Player, &GlobalTransform)>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
+    time: Res<Time>,
 
     // cursor click
+    mut mousebtn_evr: EventReader<MouseButtonInput>,
     window_q: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
+
+    // gamepad
+    gamepads: Res<Gamepads>,
+    axes: Res<Axis<GamepadAxis>>,
 ) {
-    for player_transform in &mut player_transform_q.iter() {
+    for (mut player, player_transform) in &mut player_q.iter_mut() {
+        player.projectile_spawn_timer.tick(time.delta());
+        if !player.projectile_spawn_timer.finished() {
+            return;
+        }
+
         for ev in mousebtn_evr.read() {
             if ev.state.is_pressed() && ev.button == MouseButton::Left {
                 let window = match window_q.get_single() {
@@ -97,7 +117,33 @@ fn player_projectile(
                         player_transform.translation(),
                         direction,
                     ));
+
+                    player.projectile_spawn_timer.reset();
+                    return;
                 }
+            }
+        }
+
+        if let Some(gamepad) = gamepads.iter().next() {
+            let x = axes
+                .get(GamepadAxis::new(gamepad, GamepadAxisType::RightStickX))
+                .unwrap_or(0.0);
+            let y = axes
+                .get(GamepadAxis::new(gamepad, GamepadAxisType::RightStickY))
+                .unwrap_or(0.0);
+
+            let direction = Vec2::new(x, y);
+
+            if direction.length() > 0.25 {
+                commands.spawn(ProjectileBundle::new(
+                    &asset_server,
+                    &mut texture_atlas_layouts,
+                    player_transform.translation(),
+                    direction.normalize(),
+                ));
+
+                player.projectile_spawn_timer.reset();
+                return;
             }
         }
     }
