@@ -48,6 +48,18 @@ jobs:
           cat > wasm/index.html <<EOF
           <!DOCTYPE html>
           <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>${{env.binary}}</title>
+              <meta name="darkreader-lock">
+              <link rel="shortcut icon" href="https://bloodmagesoftware.dev/favicon.svg" type="image/svg+xml">
+              <link rel="icon" href="https://bloodmagesoftware.dev/favicon.svg" type="image/svg+xml">
+              <link rel="apple-touch-icon" href="https://bloodmagesoftware.dev/favicon.svg" type="image/svg+xml">
+              <meta property="og:title" content="${{env.binary}}">
+              <meta name="description" content="Bloodmage Software :: Where the magic of gaming lives on">
+              <meta property="og:description" content="Bloodmage Software :: Where the magic of gaming lives on">
+          </head>
           <body>
           <span
             onclick="document.querySelector('canvas').requestFullscreen()"
