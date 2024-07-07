@@ -61,20 +61,20 @@ fn spawn_player(
 }
 
 fn player_projectile(
-    players: Query<(&Player, &GlobalTransform)>,
+    player_transform_q: Query<&GlobalTransform, With<Player>>,
     mut mousebtn_evr: EventReader<MouseButtonInput>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 
     // cursor click
-    windows_q: Query<&Window>,
+    window_q: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
 ) {
-    for (_, transform) in &mut players.iter() {
+    for player_transform in &mut player_transform_q.iter() {
         for ev in mousebtn_evr.read() {
             if ev.state.is_pressed() && ev.button == MouseButton::Left {
-                let window = match windows_q.get_single() {
+                let window = match window_q.get_single() {
                     Ok(window) => window,
                     Err(_) => return,
                 };
@@ -88,11 +88,13 @@ fn player_projectile(
                     .cursor_position()
                     .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor))
                 {
-                    let direction = (world_position - transform.translation().xy()).normalize();
+                    let direction =
+                        (world_position - player_transform.translation().xy()).normalize();
+
                     commands.spawn(ProjectileBundle::new(
                         &asset_server,
                         &mut texture_atlas_layouts,
-                        transform.translation(),
+                        player_transform.translation(),
                         direction,
                     ));
                 }
@@ -102,28 +104,28 @@ fn player_projectile(
 }
 
 fn player_movement(
-    mut players: Query<(&Player, &mut Velocity, &mut AnimationIndices)>,
+    mut player_q: Query<(&mut Velocity, &mut AnimationIndices), With<Player>>,
     keys: Res<ButtonInput<KeyCode>>,
     gamepads: Res<Gamepads>,
     axes: Res<Axis<GamepadAxis>>,
 ) {
-    for (_, mut velocity, mut indices) in &mut players.iter_mut() {
+    for (mut player_velocity, mut player_indices) in &mut player_q.iter_mut() {
         // keyboard x
         if keys.any_pressed([KeyCode::ArrowLeft, KeyCode::KeyA]) {
-            velocity.direction.x = -1.0;
+            player_velocity.direction.x = -1.0;
         } else if keys.any_pressed([KeyCode::ArrowRight, KeyCode::KeyD]) {
-            velocity.direction.x = 1.0;
+            player_velocity.direction.x = 1.0;
         } else {
-            velocity.direction.x = 0.0;
+            player_velocity.direction.x = 0.0;
         }
 
         // keyboard y
         if keys.any_pressed([KeyCode::ArrowUp, KeyCode::KeyW]) {
-            velocity.direction.y = 1.0;
+            player_velocity.direction.y = 1.0;
         } else if keys.any_pressed([KeyCode::ArrowDown, KeyCode::KeyS]) {
-            velocity.direction.y = -1.0;
+            player_velocity.direction.y = -1.0;
         } else {
-            velocity.direction.y = 0.0;
+            player_velocity.direction.y = 0.0;
         }
 
         // gamepad
@@ -132,7 +134,7 @@ fn player_movement(
                 axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickX))
             {
                 if left_stick_x.abs() > 0.1 {
-                    velocity.direction.x += left_stick_x;
+                    player_velocity.direction.x += left_stick_x;
                 }
             }
 
@@ -140,20 +142,20 @@ fn player_movement(
                 axes.get(GamepadAxis::new(gamepad, GamepadAxisType::LeftStickY))
             {
                 if left_stick_y.abs() > 0.1 {
-                    velocity.direction.y += left_stick_y;
+                    player_velocity.direction.y += left_stick_y;
                 }
             }
         }
 
         // face
-        if velocity.direction.x < 0.0 {
-            indices.first = 0;
-            indices.last = 1;
-        } else if velocity.direction.x > 0.0 {
-            indices.first = 2;
-            indices.last = 3;
+        if player_velocity.direction.x < 0.0 {
+            player_indices.first = 0;
+            player_indices.last = 1;
+        } else if player_velocity.direction.x > 0.0 {
+            player_indices.first = 2;
+            player_indices.last = 3;
         } else {
-            indices.last = indices.first;
+            player_indices.last = player_indices.first;
         }
     }
 }

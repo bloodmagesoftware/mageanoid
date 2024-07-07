@@ -43,11 +43,15 @@ pub struct MovingObjectBundle {
     pub velocity: Velocity,
 }
 
-fn update_position(mut query: Query<(&Velocity, &mut Transform)>, time: Res<Time>) {
-    for (vel, mut trans) in query.iter_mut() {
-        trans.translation += vel.direction.normalize_or_zero()
-            * f32::min(vel.speed, vel.direction.length() * vel.speed)
-            * time.delta_seconds();
+fn update_position(mut movable_object_q: Query<(&Velocity, &mut Transform)>, time: Res<Time>) {
+    for (movable_object_velocity, mut movable_object_transform) in movable_object_q.iter_mut() {
+        movable_object_transform.translation +=
+            movable_object_velocity.direction.normalize_or_zero()
+                * f32::min(
+                    movable_object_velocity.speed,
+                    movable_object_velocity.direction.length() * movable_object_velocity.speed,
+                )
+                * time.delta_seconds();
     }
 }
 

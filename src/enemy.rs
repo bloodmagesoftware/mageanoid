@@ -34,9 +34,12 @@ fn spawn_enemy(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
-    // players: Query<(&Player, &Transform)>,
+    // players_q: Query<(&Transform), With<Player>>,
 ) {
-    // if let Ok((_, player_transform)) = players.get_single() {}
+    // let player = match players_q.get_single() {
+    //     Ok(player) => player,
+    //     Err(_) => return,
+    // };
 
     let texture = asset_server.load("sprites/skeleton.png");
     let layout = TextureAtlasLayout::from_grid(UVec2::new(64, 64), 4, 3, None, None);
@@ -65,11 +68,11 @@ fn spawn_enemy(
 }
 
 fn update_position(
-    mut enemies: Query<(&Enemy, &Transform, &mut Velocity)>,
-    players: Query<(&Player, &Transform)>,
+    mut enemy_q: Query<(&Transform, &mut Velocity), With<Enemy>>,
+    player_transform_q: Query<&Transform, With<Player>>,
 ) {
-    if let Ok((_, player_transform)) = players.get_single() {
-        for (_, enemy_transform, mut enemy_vel) in &mut enemies.iter_mut() {
+    if let Ok(player_transform) = player_transform_q.get_single() {
+        for (enemy_transform, mut enemy_vel) in &mut enemy_q.iter_mut() {
             let direction = player_transform.translation - enemy_transform.translation;
             if direction.length() > ENEMY_THRESHOLD {
                 enemy_vel.direction = direction.normalize();
@@ -80,8 +83,8 @@ fn update_position(
     }
 }
 
-fn update_animation(mut cats: Query<(&Enemy, &Velocity, &mut AnimationIndices)>) {
-    for (_, velocity, mut indices) in &mut cats {
+fn update_animation(mut enemy_q: Query<(&Velocity, &mut AnimationIndices), With<Enemy>>) {
+    for (velocity, mut indices) in &mut enemy_q {
         if velocity.direction.x < 0.0 {
             indices.first = 0;
             indices.last = 1;

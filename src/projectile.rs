@@ -67,10 +67,10 @@ impl ProjectileBundle {
 }
 
 fn projectile_out_of_bounds(
-    projectiles_q: Query<(Entity, &ViewVisibility), With<Projectile>>,
+    projectile_q: Query<(Entity, &ViewVisibility), With<Projectile>>,
     mut commands: Commands,
 ) {
-    for (projectile_entity, view_visibility) in projectiles_q.iter() {
+    for (projectile_entity, view_visibility) in projectile_q.iter() {
         if !view_visibility.get() {
             commands.entity(projectile_entity).despawn();
         }

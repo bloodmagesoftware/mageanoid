@@ -18,8 +18,8 @@
 
 use bevy::prelude::*;
 
-fn overlap(mut query: Query<&mut Transform>) {
-    for mut transform in &mut query.iter_mut() {
+fn overlap(mut transform_q: Query<&mut Transform>) {
+    for mut transform in &mut transform_q.iter_mut() {
         transform.translation.z = -transform.translation.y;
     }
 }

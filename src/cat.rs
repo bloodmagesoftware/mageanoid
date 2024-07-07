@@ -63,24 +63,27 @@ fn spawn_cat(
 }
 
 fn update_position(
-    mut cats: Query<(&Cat, &Transform, &mut Velocity)>,
-    players: Query<(&Player, &Transform)>,
+    mut cat_q: Query<(&Transform, &mut Velocity), With<Cat>>,
+    player_transform_q: Query<&Transform, With<Player>>,
 ) {
-    if let Ok((_, player_transform)) = players.get_single() {
-        for (_, cat_transform, mut cat_vel) in &mut cats.iter_mut() {
-            // calc direction from cat to player
-            let direction = player_transform.translation - cat_transform.translation;
-            if direction.length() > CAT_THRESHOLD {
-                cat_vel.direction = direction.normalize();
-            } else {
-                cat_vel.direction = Vec3::ZERO;
-            }
-        }
+    let player_transform = match player_transform_q.get_single() {
+        Ok(player_transform) => player_transform,
+        Err(_) => return,
     };
+
+    for (cat_transform, mut cat_velocity) in &mut cat_q {
+        // calc direction from cat to player
+        let direction = player_transform.translation - cat_transform.translation;
+        if direction.length() > CAT_THRESHOLD {
+            cat_velocity.direction = direction.normalize();
+        } else {
+            cat_velocity.direction = Vec3::ZERO;
+        }
+    }
 }
 
-fn update_animation(mut cats: Query<(&Cat, &Velocity, &mut AnimationIndices)>) {
-    for (_, velocity, mut indices) in &mut cats {
+fn update_animation(mut cats: Query<(&Velocity, &mut AnimationIndices), With<Cat>>) {
+    for (velocity, mut indices) in &mut cats {
         if velocity.direction.x < 0.0 {
             indices.first = 0;
             indices.last = 1;
