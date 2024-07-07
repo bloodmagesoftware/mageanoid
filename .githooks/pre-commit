@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Run rustfmt and fix formatting issues
+echo "Running rustfmt..."
+cargo fmt
+FMT_EXIT_CODE=$?
+
+# Run clippy and warn if there are issues
+echo "Running clippy..."
+cargo clippy -- -D warnings
+CLIPPY_EXIT_CODE=$?
+
+# Allow the commit to proceed regardless of formatting/linting results
+if [ $FMT_EXIT_CODE -ne 0 ]; then
+    echo "rustfmt detected issues. Please fix them before committing."
+fi
+
+if [ $CLIPPY_EXIT_CODE -ne 0 ]; then
+    echo "clippy detected issues. Please fix them before committing."
+fi
+
+exit 0
+
