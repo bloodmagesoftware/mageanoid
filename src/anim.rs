@@ -16,8 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use std::cmp;
-
 use bevy::prelude::*;
 
 #[derive(Component, Debug)]
@@ -42,10 +40,10 @@ fn animate_sprite(
     for (indices, mut timer, mut atlas) in &mut query {
         timer.tick(time.delta());
         if timer.just_finished() {
-            atlas.index = if atlas.index == indices.last {
-                indices.first
+            atlas.index = if atlas.index >= indices.first && atlas.index < indices.last {
+                atlas.index + 1
             } else {
-                cmp::min(atlas.index + 1, indices.last)
+                indices.first
             };
         }
     }

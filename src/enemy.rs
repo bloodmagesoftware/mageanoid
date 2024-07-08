@@ -28,13 +28,40 @@ use crate::player::Player;
 use crate::projectile::Projectile;
 
 const ENEMY_SPEED: f32 = 40.0;
-const ENEMY_THRESHOLD: f32 = ENEMY_SPEED;
+const ENEMY_THRESHOLD: f32 = ENEMY_SPEED * 2.0;
 const ENEMY_MAX_COUNT: usize = 10;
 
 pub struct EnemyPlugin;
 
+#[derive(Debug)]
+enum EnemyState {
+    Hunting,
+    ReadyBlade,
+    SwingBlade,
+}
+
+#[derive(Debug)]
+enum Face {
+    Left,
+    Right,
+}
+
 #[derive(Component, Debug)]
-pub struct Enemy;
+pub struct Enemy {
+    animation_state: EnemyState,
+    face: Face,
+    sword_hit_timer: Timer,
+}
+
+impl Default for Enemy {
+    fn default() -> Self {
+        Self {
+            animation_state: EnemyState::Hunting,
+            face: Face::Left,
+            sword_hit_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+        }
+    }
+}
 
 fn spawn_enemy(
     mut commands: Commands,
@@ -58,10 +85,10 @@ fn spawn_enemy(
 
         let radius = rng.next_u32() as f32 / u32::MAX as f32 * 2.0 * std::f32::consts::PI;
         let distance =
-            rng.next_u32() as f32 / u32::MAX as f32 * ENEMY_SPEED * 20.0 + ENEMY_SPEED * 20.0;
+            rng.next_u32() as f32 / u32::MAX as f32 * ENEMY_SPEED * 10.0 + ENEMY_SPEED * 17.5;
 
         commands.spawn((
-            Enemy,
+            Enemy::default(),
             Health::new(1),
             SpriteBundle {
                 texture,
@@ -82,6 +109,31 @@ fn spawn_enemy(
                 velocity: Velocity::from_vec3(Vec3::new(0.0, 0.0, 0.0), ENEMY_SPEED),
             },
         ));
+    }
+}
+
+fn enemy_attack(
+    mut enemy_q: Query<(&mut Enemy, &GlobalTransform)>,
+    player_q: Query<&Transform, With<Player>>,
+    time: Res<Time>,
+) {
+    for (mut enemy, enemy_transform) in enemy_q.iter_mut() {
+        enemy.sword_hit_timer.tick(time.delta());
+        if !enemy.sword_hit_timer.finished() {
+            continue;
+        }
+        for player_transform in player_q.iter() {
+            let direction = player_transform.translation - enemy_transform.translation();
+            if direction.length() <= ENEMY_THRESHOLD {
+                enemy.animation_state = match enemy.animation_state {
+                    EnemyState::Hunting => EnemyState::ReadyBlade,
+                    EnemyState::SwingBlade => EnemyState::ReadyBlade,
+                    EnemyState::ReadyBlade => EnemyState::SwingBlade,
+                };
+            } else {
+                enemy.animation_state = EnemyState::Hunting;
+            }
+        }
     }
 }
 
@@ -113,7 +165,7 @@ fn update_position(
     if let Ok(player_transform) = player_transform_q.get_single() {
         for (enemy_transform, mut enemy_vel) in &mut enemy_q.iter_mut() {
             let direction = player_transform.translation - enemy_transform.translation;
-            if direction.length() > ENEMY_THRESHOLD {
+            if direction.length() >= ENEMY_THRESHOLD {
                 enemy_vel.direction = direction.normalize();
             } else {
                 enemy_vel.direction = Vec3::ZERO;
@@ -122,17 +174,28 @@ fn update_position(
     }
 }
 
-fn update_animation(mut enemy_q: Query<(&Velocity, &mut AnimationIndices), With<Enemy>>) {
-    for (velocity, mut indices) in &mut enemy_q {
+fn update_animation(mut enemy_q: Query<(&mut Enemy, &Velocity, &mut AnimationIndices)>) {
+    for (mut enemy, velocity, mut animation_indices) in enemy_q.iter_mut() {
         if velocity.direction.x < 0.0 {
-            indices.first = 0;
-            indices.last = 1;
+            enemy.face = Face::Left;
         } else if velocity.direction.x > 0.0 {
-            indices.first = 2;
-            indices.last = 3;
-        } else {
-            indices.last = indices.first;
+            enemy.face = Face::Right;
         }
+
+        animation_indices.first = match enemy.animation_state {
+            EnemyState::Hunting => 0,
+            EnemyState::ReadyBlade => 4,
+            EnemyState::SwingBlade => 8,
+        } + match enemy.face {
+            Face::Left => 0,
+            Face::Right => 2,
+        };
+
+        animation_indices.last = if velocity.direction.length() > 0.0 {
+            animation_indices.first + 1
+        } else {
+            animation_indices.first
+        };
     }
 }
 
@@ -140,6 +203,7 @@ impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, spawn_enemy)
             .add_systems(Update, update_position)
+            .add_systems(Update, enemy_attack)
             .add_systems(Update, update_animation)
             .add_systems(Update, projectile_hit_enemy);
     }

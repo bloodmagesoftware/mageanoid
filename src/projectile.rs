@@ -60,7 +60,7 @@ impl ProjectileBundle {
                 timer: AnimationTimer(Timer::from_seconds(0.125, TimerMode::Repeating)),
             },
             moving_object: MovingObjectBundle {
-                velocity: Velocity::from_vec2(direction, 200.0),
+                velocity: Velocity::from_vec2(direction, 512.0),
             },
         }
     }
