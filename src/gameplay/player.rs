@@ -90,68 +90,99 @@ fn player_projectile(
     // gamepad
     gamepads: Res<Gamepads>,
     axes: Res<Axis<GamepadAxis>>,
+
+    // touch
+    touches: Res<Touches>,
 ) {
-    for (mut player, player_transform) in player_q.iter_mut() {
-        player.projectile_spawn_timer.tick(time.delta());
-        if !player.projectile_spawn_timer.finished() {
-            return;
-        }
+    let (mut player, player_transform) = match player_q.iter_mut().next() {
+        Some(player) => player,
+        None => return,
+    };
 
-        for ev in mousebtn_evr.read() {
-            if ev.state.is_pressed() && ev.button == MouseButton::Left {
-                let window = match window_q.get_single() {
-                    Ok(window) => window,
-                    Err(_) => return,
-                };
+    player.projectile_spawn_timer.tick(time.delta());
+    if !player.projectile_spawn_timer.finished() {
+        return;
+    }
 
-                let (camera, camera_transform) = match camera_q.get_single() {
-                    Ok(cam) => cam,
-                    Err(_) => return,
-                };
+    // mouse
+    for ev in mousebtn_evr.read() {
+        if ev.state.is_pressed() && ev.button == MouseButton::Left {
+            let window = match window_q.get_single() {
+                Ok(window) => window,
+                Err(_) => return,
+            };
 
-                if let Some(world_position) = window
-                    .cursor_position()
-                    .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor))
-                {
-                    let direction =
-                        (world_position - player_transform.translation().xy()).normalize();
+            let (camera, camera_transform) = match camera_q.get_single() {
+                Ok(cam) => cam,
+                Err(_) => return,
+            };
 
-                    commands.spawn(ProjectileBundle::new(
-                        &asset_server,
-                        &mut texture_atlas_layouts,
-                        player_transform.translation(),
-                        direction,
-                    ));
-                    spell_sound_fx(&mut commands, &asset_server);
+            if let Some(world_position) = window
+                .cursor_position()
+                .and_then(|cursor| camera.viewport_to_world_2d(camera_transform, cursor))
+            {
+                let direction = (world_position - player_transform.translation().xy()).normalize();
 
-                    player.projectile_spawn_timer.reset();
-                    return;
-                }
-            }
-        }
-
-        if let Some(gamepad) = gamepads.iter().next() {
-            let x = axes
-                .get(GamepadAxis::new(gamepad, GamepadAxisType::RightStickX))
-                .unwrap_or(0.0);
-            let y = axes
-                .get(GamepadAxis::new(gamepad, GamepadAxisType::RightStickY))
-                .unwrap_or(0.0);
-
-            let direction = Vec2::new(x, y);
-
-            if direction.length() > 0.25 {
                 commands.spawn(ProjectileBundle::new(
                     &asset_server,
                     &mut texture_atlas_layouts,
                     player_transform.translation(),
-                    direction.normalize(),
+                    direction,
                 ));
                 spell_sound_fx(&mut commands, &asset_server);
 
                 player.projectile_spawn_timer.reset();
                 return;
             }
+        }
+    }
+
+    // gamepad
+    if let Some(gamepad) = gamepads.iter().next() {
+        let x = axes
+            .get(GamepadAxis::new(gamepad, GamepadAxisType::RightStickX))
+            .unwrap_or(0.0);
+        let y = axes
+            .get(GamepadAxis::new(gamepad, GamepadAxisType::RightStickY))
+            .unwrap_or(0.0);
+
+        let direction = Vec2::new(x, y);
+
+        if direction.length() > 0.25 {
+            commands.spawn(ProjectileBundle::new(
+                &asset_server,
+                &mut texture_atlas_layouts,
+                player_transform.translation(),
+                direction.normalize(),
+            ));
+            spell_sound_fx(&mut commands, &asset_server);
+
+            player.projectile_spawn_timer.reset();
+            return;
+        }
+    }
+
+    // touch
+    if let Some(touch) = touches.iter().next() {
+        let (camera, camera_transform) = match camera_q.get_single() {
+            Ok(cam) => cam,
+            Err(_) => return,
+        };
+
+        if let Some(world_position) =
+            camera.viewport_to_world_2d(camera_transform, touch.position())
+        {
+            let direction = (world_position - player_transform.translation().xy()).normalize();
+
+            commands.spawn(ProjectileBundle::new(
+                &asset_server,
+                &mut texture_atlas_layouts,
+                player_transform.translation(),
+                direction,
+            ));
+            spell_sound_fx(&mut commands, &asset_server);
+
+            player.projectile_spawn_timer.reset();
         }
     }
 }
