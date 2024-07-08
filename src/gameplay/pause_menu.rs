@@ -19,7 +19,7 @@
 use bevy::prelude::*;
 
 use crate::state::AppState;
-use crate::style::{ButtonId, text_button, text_title, v_space};
+use crate::style::{text_button, text_title, v_space, ButtonId};
 
 #[derive(Component, Debug)]
 struct PauseMenu;
