@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+use bevy::audio::PlaybackMode;
 use bevy::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::GlobalEntropy;
@@ -116,6 +117,8 @@ fn enemy_attack(
     mut enemy_q: Query<(&mut Enemy, &GlobalTransform)>,
     player_q: Query<&Transform, With<Player>>,
     time: Res<Time>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
 ) {
     for (mut enemy, enemy_transform) in enemy_q.iter_mut() {
         enemy.sword_hit_timer.tick(time.delta());
@@ -128,7 +131,10 @@ fn enemy_attack(
                 enemy.animation_state = match enemy.animation_state {
                     EnemyState::Hunting => EnemyState::ReadyBlade,
                     EnemyState::SwingBlade => EnemyState::ReadyBlade,
-                    EnemyState::ReadyBlade => EnemyState::SwingBlade,
+                    EnemyState::ReadyBlade => {
+                        enemy_attack_fx(&mut commands, &asset_server);
+                        EnemyState::SwingBlade
+                    }
                 };
             } else {
                 enemy.animation_state = EnemyState::Hunting;
@@ -141,6 +147,7 @@ fn projectile_hit_enemy(
     mut commands: Commands,
     mut enemy_q: Query<(Entity, &Transform, &mut Health), With<Enemy>>,
     projectile_q: Query<(Entity, &Transform), With<Projectile>>,
+    asset_server: Res<AssetServer>,
 ) {
     for (projectile_entity, projectile_transform) in &mut projectile_q.iter() {
         for (enemy_entity, enemy_transform, mut enemy_health) in &mut enemy_q.iter_mut() {
@@ -152,10 +159,31 @@ fn projectile_hit_enemy(
                 if enemy_health.damage(1) {
                     commands.entity(enemy_entity).despawn();
                 }
+                enemy_hit_fx(&mut commands, &asset_server);
                 commands.entity(projectile_entity).despawn();
             }
         }
     }
+}
+
+fn enemy_hit_fx(commands: &mut Commands, asset_server: &Res<AssetServer>) {
+    commands.spawn(AudioBundle {
+        source: asset_server.load("sounds/69_Enemy_death_01.wav"),
+        settings: PlaybackSettings {
+            mode: PlaybackMode::Despawn,
+            ..default()
+        },
+    });
+}
+
+fn enemy_attack_fx(commands: &mut Commands, asset_server: &Res<AssetServer>) {
+    commands.spawn(AudioBundle {
+        source: asset_server.load("sounds/56_Attack_03.wav"),
+        settings: PlaybackSettings {
+            mode: PlaybackMode::Despawn,
+            ..default()
+        },
+    });
 }
 
 fn update_position(

@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+use bevy::audio::PlaybackMode;
 use bevy::input::mouse::MouseButtonInput;
 use bevy::prelude::*;
 
@@ -30,12 +31,14 @@ pub struct PlayerPlugin;
 #[derive(Component, Debug)]
 pub struct Player {
     pub projectile_spawn_timer: Timer,
+    pub walk_sound_timer: Timer,
 }
 
 impl Default for Player {
     fn default() -> Self {
         Self {
             projectile_spawn_timer: Timer::from_seconds(0.2, TimerMode::Once),
+            walk_sound_timer: Timer::from_seconds(0.4, TimerMode::Repeating),
         }
     }
 }
@@ -118,6 +121,7 @@ fn player_projectile(
                         player_transform.translation(),
                         direction,
                     ));
+                    spell_sound_fx(&mut commands, &asset_server);
 
                     player.projectile_spawn_timer.reset();
                     return;
@@ -142,11 +146,55 @@ fn player_projectile(
                     player_transform.translation(),
                     direction.normalize(),
                 ));
+                spell_sound_fx(&mut commands, &asset_server);
 
                 player.projectile_spawn_timer.reset();
                 return;
             }
         }
+    }
+}
+
+fn spell_sound_fx(commands: &mut Commands, asset_server: &Res<AssetServer>) {
+    commands.spawn(AudioBundle {
+        source: asset_server.load("sounds/56_Attack_03.wav"),
+        settings: PlaybackSettings {
+            mode: PlaybackMode::Despawn,
+            ..default()
+        },
+    });
+    commands.spawn(AudioBundle {
+        source: asset_server.load("sounds/18_Thunder_02.wav"),
+        settings: PlaybackSettings {
+            mode: PlaybackMode::Despawn,
+            ..default()
+        },
+    });
+}
+
+fn player_step_sound_fx(
+    mut player_q: Query<(&mut Player, &Velocity)>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    time: Res<Time>,
+) {
+    for (mut player, player_velocity) in player_q.iter_mut() {
+        player.walk_sound_timer.tick(time.delta());
+        if player_velocity.direction.length() <= 0.0 {
+            continue;
+        }
+
+        if !player.walk_sound_timer.just_finished() {
+            continue;
+        }
+
+        commands.spawn(AudioBundle {
+            source: asset_server.load("sounds/03_Step_grass_03.wav"),
+            settings: PlaybackSettings {
+                mode: PlaybackMode::Despawn,
+                ..default()
+            },
+        });
     }
 }
 
@@ -229,6 +277,7 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_player)
             .add_systems(Update, player_movement)
+            .add_systems(Update, player_step_sound_fx)
             .add_systems(Update, player_projectile);
     }
 }
