@@ -155,7 +155,7 @@ fn projectile_hit_enemy(
             if projectile_transform
                 .translation
                 .distance(enemy_transform.translation)
-                < 64.0
+                < ENEMY_THRESHOLD
             {
                 if enemy_health.damage(1) {
                     commands.entity(enemy_entity).despawn_recursive();
