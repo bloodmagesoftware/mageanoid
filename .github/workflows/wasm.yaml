@@ -49,16 +49,31 @@ jobs:
           <!DOCTYPE html>
           <html lang="en">
           <head>
+              <title>${{env.binary}}</title>
+              <link rel="shortcut icon" href="https://bloodmagesoftware.github.io/${{env.binary}}/assets/icon.png" type="image/png">
+              <link rel="icon" href="https://bloodmagesoftware.github.io/${{env.binary}}/assets/icon.png" type="image/png">
+              <link rel="apple-touch-icon" href="https://bloodmagesoftware.github.io/${{env.binary}}/assets/icon.png" type="image/png">
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>${{env.binary}}</title>
+              <meta rel="canonical" href="https://bloodmagesoftware.github.io/${{env.binary}}">
               <meta name="darkreader-lock">
-              <link rel="shortcut icon" href="https://bloodmagesoftware.dev/favicon.svg" type="image/svg+xml">
-              <link rel="icon" href="https://bloodmagesoftware.dev/favicon.svg" type="image/svg+xml">
-              <link rel="apple-touch-icon" href="https://bloodmagesoftware.dev/favicon.svg" type="image/svg+xml">
-              <meta property="og:title" content="${{env.binary}}">
+              <meta name="generator" content="Bevy">
               <meta name="description" content="Bloodmage Software :: Where the magic of gaming lives on">
+              <meta rel="icon" href="https://bloodmagesoftware.github.io/${{env.binary}}/assets/icon.png">
+
+              <!-- Open Graph / Facebook -->
+              <meta property="og:title" content="${{env.binary}}">
               <meta property="og:description" content="Bloodmage Software :: Where the magic of gaming lives on">
+              <meta property="og:image" content="https://bloodmagesoftware.github.io/${{env.binary}}/assets/icon.png">
+              <meta property="og:url" content="https://bloodmagesoftware.github.io/${{env.binary}}">
+              <meta property="og:type" content="website">
+
+              <!-- Twitter -->
+              <meta name="twitter:card" content="summary_large_image">
+              <meta name="twitter:title" content="${{env.binary}}">
+              <meta name="twitter:description" content="Bloodmage Software :: Where the magic of gaming lives on">
+              <meta name="twitter:image" content="https://bloodmagesoftware.github.io/${{env.binary}}/assets/icon.png">
+              <meta name="twitter:url" content="https://bloodmagesoftware.github.io/${{env.binary}}">
           </head>
           <body>
           <span
