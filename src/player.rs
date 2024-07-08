@@ -70,6 +70,7 @@ fn spawn_player(
     ));
 }
 
+#[allow(clippy::too_many_arguments)]
 fn player_projectile(
     mut player_q: Query<(&mut Player, &GlobalTransform)>,
     mut commands: Commands,
