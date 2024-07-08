@@ -22,12 +22,6 @@ pub const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.15, 0.15);
 pub const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
 pub const PRESSED_BUTTON: Color = Color::srgb(0.35, 0.35, 0.35);
 
-fn init_buttons(mut button_q: Query<&mut BackgroundColor, With<Button>>) {
-    for mut color in button_q.iter_mut() {
-        *color = NORMAL_BUTTON.into();
-    }
-}
-
 fn update_buttons(
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor),
@@ -84,6 +78,7 @@ pub fn v_space(height: f32) -> NodeBundle {
 pub fn text_button(content: impl Into<String>, id: u8) -> (InteractiveButtonBundle, TextBundle) {
     let button = InteractiveButtonBundle {
         button: ButtonBundle {
+            background_color: NORMAL_BUTTON.into(),
             style: Style {
                 width: Val::Px(256.0),
                 height: Val::Px(64.0),
