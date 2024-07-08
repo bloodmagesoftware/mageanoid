@@ -19,6 +19,8 @@
 use bevy::math::f32;
 use bevy::prelude::*;
 
+use crate::state::AppState;
+
 #[derive(Component, Debug)]
 pub struct Velocity {
     pub direction: Vec3,
@@ -59,6 +61,6 @@ pub struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_position);
+        app.add_systems(Update, update_position.run_if(in_state(AppState::InGame)));
     }
 }

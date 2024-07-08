@@ -17,14 +17,14 @@
  */
 
 use bevy::prelude::*;
-use bevy::render::camera::ScalingMode;
+use bevy::render::camera::*;
 
 fn add_camera(mut commands: Commands) {
     let mut my_2d_camera_bundle = Camera2dBundle::default();
     my_2d_camera_bundle.projection.scaling_mode = ScalingMode::FixedVertical(1024.0);
     my_2d_camera_bundle.transform = Transform::from_xyz(0.0, 0.0, 0.0);
 
-    commands.spawn(my_2d_camera_bundle);
+    commands.spawn((my_2d_camera_bundle, IsDefaultUiCamera));
 }
 
 pub struct CamPlugin;

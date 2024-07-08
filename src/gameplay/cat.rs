@@ -18,9 +18,10 @@
 
 use bevy::prelude::*;
 
-use crate::anim::{AnimatedSpriteBundle, AnimationIndices, AnimationTimer};
-use crate::movement::*;
-use crate::player::Player;
+use crate::gameplay::anim::*;
+use crate::gameplay::movement::*;
+use crate::gameplay::player::*;
+use crate::state::{AppState, ON_ENTER_GAMEPLAY, ON_EXIT_GAMEPLAY};
 
 const CAT_SPEED: f32 = 75.0;
 const CAT_THRESHOLD: f32 = 100.0;
@@ -71,7 +72,7 @@ fn update_position(
         Err(_) => return,
     };
 
-    for (cat_transform, mut cat_velocity) in &mut cat_q {
+    for (cat_transform, mut cat_velocity) in cat_q.iter_mut() {
         // calc direction from cat to player
         let direction = player_transform.translation - cat_transform.translation;
         if direction.length() > CAT_THRESHOLD {
@@ -83,7 +84,7 @@ fn update_position(
 }
 
 fn update_animation(mut cats: Query<(&Velocity, &mut AnimationIndices), With<Cat>>) {
-    for (velocity, mut indices) in &mut cats {
+    for (velocity, mut indices) in cats.iter_mut() {
         if velocity.direction.x < 0.0 {
             indices.first = 0;
             indices.last = 1;
@@ -96,10 +97,19 @@ fn update_animation(mut cats: Query<(&Velocity, &mut AnimationIndices), With<Cat
     }
 }
 
+fn despawn_cat(mut commands: Commands, cat_q: Query<Entity, With<Cat>>) {
+    for cat_entity in cat_q.iter() {
+        commands.entity(cat_entity).despawn_recursive();
+    }
+}
+
 impl Plugin for CatPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_cat)
-            .add_systems(Update, update_position)
-            .add_systems(Update, update_animation);
+        app.add_systems(ON_ENTER_GAMEPLAY, spawn_cat)
+            .add_systems(
+                Update,
+                (update_position, update_animation).run_if(in_state(AppState::InGame)),
+            )
+            .add_systems(ON_EXIT_GAMEPLAY, despawn_cat);
     }
 }

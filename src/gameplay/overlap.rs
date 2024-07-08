@@ -17,25 +17,19 @@
  */
 
 use bevy::prelude::*;
-use bevy_prng::WyRand;
-use bevy_rand::prelude::EntropyPlugin;
 
-mod cam;
-mod gameplay;
-mod mainmenu;
-mod state;
-mod style;
+use crate::state::AppState;
 
-fn main() {
-    let mut app = App::new();
+fn overlap(mut transform_q: Query<&mut Transform>) {
+    for mut transform in transform_q.iter_mut() {
+        transform.translation.z = -transform.translation.y;
+    }
+}
 
-    app.add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .add_plugins(EntropyPlugin::<WyRand>::default())
-        .add_plugins(cam::CamPlugin)
-        .add_plugins(gameplay::GameplayPlugin)
-        .add_plugins(mainmenu::MainMenuPlugin)
-        .add_plugins(state::AppStatePlugin)
-        .add_plugins(style::StylePlugin);
+pub struct OverlapPlugin;
 
-    app.run();
+impl Plugin for OverlapPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, overlap.run_if(in_state(AppState::InGame)));
+    }
 }

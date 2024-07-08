@@ -17,25 +17,29 @@
  */
 
 use bevy::prelude::*;
-use bevy_prng::WyRand;
-use bevy_rand::prelude::EntropyPlugin;
 
-mod cam;
-mod gameplay;
-mod mainmenu;
-mod state;
-mod style;
+#[derive(States, Debug, Clone, PartialEq, Eq, Hash, Default)]
+pub enum AppState {
+    #[default]
+    MainMenu,
+    Paused,
+    InGame,
+}
 
-fn main() {
-    let mut app = App::new();
+pub const ON_ENTER_GAMEPLAY: OnTransition<AppState> = OnTransition {
+    exited: AppState::MainMenu,
+    entered: AppState::InGame,
+};
 
-    app.add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .add_plugins(EntropyPlugin::<WyRand>::default())
-        .add_plugins(cam::CamPlugin)
-        .add_plugins(gameplay::GameplayPlugin)
-        .add_plugins(mainmenu::MainMenuPlugin)
-        .add_plugins(state::AppStatePlugin)
-        .add_plugins(style::StylePlugin);
+pub const ON_EXIT_GAMEPLAY: OnTransition<AppState> = OnTransition {
+    exited: AppState::Paused,
+    entered: AppState::MainMenu,
+};
 
-    app.run();
+pub struct AppStatePlugin;
+
+impl Plugin for AppStatePlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_state(AppState::MainMenu);
+    }
 }

@@ -22,11 +22,12 @@ use bevy_prng::WyRand;
 use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
 
-use crate::anim::{AnimationIndices, AnimationTimer};
-use crate::health::Health;
-use crate::movement::*;
-use crate::player::Player;
-use crate::projectile::Projectile;
+use crate::gameplay::anim::*;
+use crate::gameplay::health::*;
+use crate::gameplay::movement::*;
+use crate::gameplay::player::*;
+use crate::gameplay::projectile::*;
+use crate::state::{AppState, ON_EXIT_GAMEPLAY};
 
 const ENEMY_SPEED: f32 = 40.0;
 const ENEMY_THRESHOLD: f32 = ENEMY_SPEED * 2.0;
@@ -149,18 +150,18 @@ fn projectile_hit_enemy(
     projectile_q: Query<(Entity, &Transform), With<Projectile>>,
     asset_server: Res<AssetServer>,
 ) {
-    for (projectile_entity, projectile_transform) in &mut projectile_q.iter() {
-        for (enemy_entity, enemy_transform, mut enemy_health) in &mut enemy_q.iter_mut() {
+    for (projectile_entity, projectile_transform) in projectile_q.iter() {
+        for (enemy_entity, enemy_transform, mut enemy_health) in enemy_q.iter_mut() {
             if projectile_transform
                 .translation
                 .distance(enemy_transform.translation)
                 < 64.0
             {
                 if enemy_health.damage(1) {
-                    commands.entity(enemy_entity).despawn();
+                    commands.entity(enemy_entity).despawn_recursive();
                 }
                 enemy_hit_fx(&mut commands, &asset_server);
-                commands.entity(projectile_entity).despawn();
+                commands.entity(projectile_entity).despawn_recursive();
             }
         }
     }
@@ -191,7 +192,7 @@ fn update_position(
     player_transform_q: Query<&Transform, With<Player>>,
 ) {
     if let Ok(player_transform) = player_transform_q.get_single() {
-        for (enemy_transform, mut enemy_vel) in &mut enemy_q.iter_mut() {
+        for (enemy_transform, mut enemy_vel) in enemy_q.iter_mut() {
             let direction = player_transform.translation - enemy_transform.translation;
             if direction.length() >= ENEMY_THRESHOLD {
                 enemy_vel.direction = direction.normalize();
@@ -227,12 +228,25 @@ fn update_animation(mut enemy_q: Query<(&mut Enemy, &Velocity, &mut AnimationInd
     }
 }
 
+fn despawn_enemy(mut commands: Commands, enemy_q: Query<Entity, With<Enemy>>) {
+    for enemy_entity in enemy_q.iter() {
+        commands.entity(enemy_entity).despawn_recursive();
+    }
+}
+
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, spawn_enemy)
-            .add_systems(Update, update_position)
-            .add_systems(Update, enemy_attack)
-            .add_systems(Update, update_animation)
-            .add_systems(Update, projectile_hit_enemy);
+        app.add_systems(
+            Update,
+            (
+                spawn_enemy,
+                update_position,
+                enemy_attack,
+                update_animation,
+                projectile_hit_enemy,
+            )
+                .run_if(in_state(AppState::InGame)),
+        )
+        .add_systems(ON_EXIT_GAMEPLAY, despawn_enemy);
     }
 }

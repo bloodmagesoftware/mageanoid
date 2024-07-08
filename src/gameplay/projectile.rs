@@ -18,8 +18,9 @@
 
 use bevy::prelude::*;
 
-use crate::anim::{AnimatedSpriteBundle, AnimationIndices, AnimationTimer};
-use crate::movement::{MovingObjectBundle, Velocity};
+use crate::gameplay::anim::*;
+use crate::gameplay::movement::*;
+use crate::state::AppState;
 
 #[derive(Component, Debug)]
 pub struct Projectile;
@@ -72,7 +73,7 @@ fn projectile_out_of_bounds(
 ) {
     for (projectile_entity, view_visibility) in projectile_q.iter() {
         if !view_visibility.get() {
-            commands.entity(projectile_entity).despawn();
+            commands.entity(projectile_entity).despawn_recursive();
         }
     }
 }
@@ -81,6 +82,9 @@ pub struct ProjectilePlugin;
 
 impl Plugin for ProjectilePlugin {
     fn build(&self, _app: &mut App) {
-        _app.add_systems(Update, projectile_out_of_bounds);
+        _app.add_systems(
+            Update,
+            projectile_out_of_bounds.run_if(in_state(AppState::InGame)),
+        );
     }
 }

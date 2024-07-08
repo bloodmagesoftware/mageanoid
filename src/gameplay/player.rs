@@ -20,9 +20,10 @@ use bevy::audio::PlaybackMode;
 use bevy::input::mouse::MouseButtonInput;
 use bevy::prelude::*;
 
-use crate::anim::*;
-use crate::movement::*;
-use crate::projectile::ProjectileBundle;
+use crate::gameplay::anim::*;
+use crate::gameplay::movement::*;
+use crate::gameplay::projectile::*;
+use crate::state::{AppState, ON_ENTER_GAMEPLAY, ON_EXIT_GAMEPLAY};
 
 const PLAYER_MOVE_SPEED: f32 = 175.0;
 
@@ -90,7 +91,7 @@ fn player_projectile(
     gamepads: Res<Gamepads>,
     axes: Res<Axis<GamepadAxis>>,
 ) {
-    for (mut player, player_transform) in &mut player_q.iter_mut() {
+    for (mut player, player_transform) in player_q.iter_mut() {
         player.projectile_spawn_timer.tick(time.delta());
         if !player.projectile_spawn_timer.finished() {
             return;
@@ -273,11 +274,20 @@ fn player_movement(
     }
 }
 
+fn despawn_player(mut commands: Commands, query: Query<Entity, With<Player>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+}
+
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_player)
-            .add_systems(Update, player_movement)
-            .add_systems(Update, player_step_sound_fx)
-            .add_systems(Update, player_projectile);
+        app.add_systems(ON_ENTER_GAMEPLAY, spawn_player);
+        app.add_systems(
+            Update,
+            (player_movement, player_step_sound_fx, player_projectile)
+                .run_if(in_state(AppState::InGame)),
+        )
+        .add_systems(ON_EXIT_GAMEPLAY, despawn_player);
     }
 }

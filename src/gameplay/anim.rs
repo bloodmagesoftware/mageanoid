@@ -18,6 +18,8 @@
 
 use bevy::prelude::*;
 
+use crate::state::AppState;
+
 #[derive(Component, Debug)]
 pub struct AnimationIndices {
     pub first: usize,
@@ -37,7 +39,7 @@ fn animate_sprite(
     time: Res<Time>,
     mut query: Query<(&AnimationIndices, &mut AnimationTimer, &mut TextureAtlas)>,
 ) {
-    for (indices, mut timer, mut atlas) in &mut query {
+    for (indices, mut timer, mut atlas) in query.iter_mut() {
         timer.tick(time.delta());
         if timer.just_finished() {
             atlas.index = if atlas.index >= indices.first && atlas.index < indices.last {
@@ -61,6 +63,6 @@ pub struct AnimPlugin;
 
 impl Plugin for AnimPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, animate_sprite);
+        app.add_systems(Update, animate_sprite.run_if(in_state(AppState::InGame)));
     }
 }

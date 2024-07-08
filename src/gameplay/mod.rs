@@ -18,16 +18,28 @@
 
 use bevy::prelude::*;
 
-fn overlap(mut transform_q: Query<&mut Transform>) {
-    for mut transform in &mut transform_q.iter_mut() {
-        transform.translation.z = -transform.translation.y;
-    }
-}
+mod anim;
+mod cat;
+mod enemy;
+mod health;
+mod movement;
+mod overlap;
+mod pause_menu;
+mod player;
+mod projectile;
 
-pub struct OverlapPlugin;
+pub struct GameplayPlugin;
 
-impl Plugin for OverlapPlugin {
+impl Plugin for GameplayPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, overlap);
+        app.add_plugins(anim::AnimPlugin)
+            .add_plugins(cat::CatPlugin)
+            .add_plugins(enemy::EnemyPlugin)
+            .add_plugins(health::HealthPlugin)
+            .add_plugins(pause_menu::HudPlugin)
+            .add_plugins(movement::MovementPlugin)
+            .add_plugins(overlap::OverlapPlugin)
+            .add_plugins(player::PlayerPlugin)
+            .add_plugins(projectile::ProjectilePlugin);
     }
 }
