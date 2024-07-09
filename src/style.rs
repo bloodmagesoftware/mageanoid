@@ -54,11 +54,22 @@ pub struct InteractiveButtonBundle {
     pub id: ButtonId,
 }
 
+pub fn text(content: impl Into<String>) -> TextBundle {
+    TextBundle::from_section(
+        content,
+        TextStyle {
+            font_size: 32.0,
+            color: Color::WHITE,
+            ..default()
+        },
+    )
+}
+
 pub fn text_title(content: impl Into<String>) -> TextBundle {
     TextBundle::from_section(
         content,
         TextStyle {
-            font_size: 100.0,
+            font_size: 75.0,
             color: Color::WHITE,
             ..default()
         },

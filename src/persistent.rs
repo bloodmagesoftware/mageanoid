@@ -17,10 +17,9 @@
  */
 
 use bevy::prelude::*;
-use bevy_persistent::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::state::{AppState, ON_ENTER_GAMEPLAY};
+use crate::state::*;
 
 #[derive(Resource, Serialize, Deserialize, Default, Debug)]
 pub struct Score {
@@ -40,25 +39,40 @@ impl Score {
 }
 
 fn setup(mut commands: Commands) {
-    let config_dir = dirs::config_dir().unwrap().join("mageanoid");
-    let resource = Persistent::<Score>::builder()
-        .name("score")
-        .format(StorageFormat::Toml)
-        .path(config_dir.join("score.toml"))
-        .default(Score::default())
-        .build()
-        .expect("failed to initialize score resource");
+    #[cfg(feature = "storage")]
+    {
+        if let Some(config_dir) = dirs::config_dir() {
+            let resource = bevy_persistent::Persistent::<Score>::builder()
+                .name("score")
+                .format(bevy_persistent::StorageFormat::Bincode)
+                .path(config_dir.join("mageanoid").join("score"))
+                .default(Score::default())
+                .revertible(true)
+                .revert_to_default_on_deserialization_errors(true)
+                .build()
+                .expect("failed to initialize score resource");
 
-    commands.insert_resource(resource);
-
-    info!("Score resource initialized");
+            commands.insert_resource(resource);
+        }
+    }
+    #[cfg(not(feature = "storage"))]
+    {
+        commands.insert_resource(Score::default());
+    }
 }
 
-fn reset_score(mut score: ResMut<Persistent<Score>>) {
+#[cfg(feature = "storage")]
+fn reset_score(mut score: ResMut<bevy_persistent::Persistent<Score>>) {
     score.reset();
 }
 
-fn persist(score: Res<Persistent<Score>>) {
+#[cfg(not(feature = "storage"))]
+fn reset_score(mut score: ResMut<Score>) {
+    score.reset();
+}
+
+#[cfg(feature = "storage")]
+fn persist(score: Res<bevy_persistent::Persistent<Score>>) {
     score.persist().expect("failed to persist score");
 }
 
@@ -66,8 +80,17 @@ pub struct PersistentPlugin;
 
 impl Plugin for PersistentPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup)
-            .add_systems(ON_ENTER_GAMEPLAY, reset_score)
-            .add_systems(OnExit(AppState::InGame), persist);
+        #[cfg(feature = "storage")]
+        {
+            app.add_systems(PreStartup, setup)
+                .add_systems(ON_ENTER_GAMEPLAY, reset_score)
+                .add_systems(OnExit(AppState::InGame), persist);
+        }
+
+        #[cfg(not(feature = "storage"))]
+        {
+            app.add_systems(PreStartup, setup)
+                .add_systems(ON_ENTER_GAMEPLAY, reset_score);
+        }
     }
 }

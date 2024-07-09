@@ -20,6 +20,7 @@ extern crate bevy;
 
 use bevy::prelude::*;
 
+use crate::persistent::Score;
 use crate::state::AppState;
 use crate::style::*;
 
@@ -28,7 +29,11 @@ pub struct MainMenuPlugin;
 #[derive(Component, Debug)]
 struct MainMenu;
 
-fn spawn_ui(mut commands: Commands) {
+fn spawn_ui(
+    mut commands: Commands,
+    #[cfg(feature = "storage")] score: Res<bevy_persistent::Persistent<Score>>,
+    #[cfg(not(feature = "storage"))] score: Res<Score>,
+) {
     let container = NodeBundle {
         style: Style {
             width: Val::Percent(100.0),
@@ -49,6 +54,7 @@ fn spawn_ui(mut commands: Commands) {
         .spawn((MainMenu, container))
         .with_children(|parent| {
             parent.spawn(text_title("Mageanoid"));
+            parent.spawn(text(format!("High Score: {}", score.high_score)));
             parent.spawn(v_space(20.0));
             parent.spawn(start_btn).with_children(|parent| {
                 parent.spawn(start_btn_text);

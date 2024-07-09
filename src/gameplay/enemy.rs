@@ -18,6 +18,7 @@
 
 use bevy::audio::PlaybackMode;
 use bevy::prelude::*;
+#[cfg(feature = "storage")]
 use bevy_persistent::Persistent;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::GlobalEntropy;
@@ -31,9 +32,9 @@ use crate::gameplay::projectile::*;
 use crate::persistent::Score;
 use crate::state::{AppState, ON_EXIT_GAMEPLAY};
 
-const ENEMY_SPEED: f32 = 40.0;
-const ENEMY_THRESHOLD: f32 = ENEMY_SPEED * 2.0;
-const ENEMY_MAX_COUNT: usize = 10;
+const ENEMY_SPEED: f32 = 70.0;
+const ENEMY_THRESHOLD: f32 = 64.0;
+const ENEMY_MAX_COUNT: usize = 64;
 
 pub struct EnemyPlugin;
 
@@ -89,18 +90,22 @@ fn spawn_enemy(
 
         let radius = rng.next_u32() as f32 / u32::MAX as f32 * 2.0 * std::f32::consts::PI;
         let distance =
-            rng.next_u32() as f32 / u32::MAX as f32 * ENEMY_SPEED * 10.0 + ENEMY_SPEED * 17.5;
+            rng.next_u32() as f32 / u32::MAX as f32 * ENEMY_SPEED * 15.0 + ENEMY_SPEED * 15.0;
 
         commands.spawn((
             Enemy::default(),
             Health::new(1.0),
             SpriteBundle {
                 texture,
-                transform: Transform::from_scale(Vec3::splat(1.0)).with_translation(Vec3::new(
-                    player_transform.translation.x + distance * radius.cos(),
-                    player_transform.translation.y + distance * radius.sin(),
-                    0.0,
-                )),
+                transform: Transform {
+                    translation: Vec3::new(
+                        player_transform.translation.x + distance * radius.cos(),
+                        player_transform.translation.y + distance * radius.sin(),
+                        0.0,
+                    ),
+                    scale: Vec3::splat(1.0),
+                    ..default()
+                },
                 ..default()
             },
             TextureAtlas {
@@ -155,7 +160,8 @@ fn projectile_hit_enemy(
     mut enemy_q: Query<(Entity, &Transform, &mut Health), With<Enemy>>,
     projectile_q: Query<(Entity, &Transform), With<Projectile>>,
     asset_server: Res<AssetServer>,
-    mut score: ResMut<Persistent<Score>>,
+    #[cfg(feature = "storage")] mut score: ResMut<Persistent<Score>>,
+    #[cfg(not(feature = "storage"))] mut score: ResMut<Score>,
 ) {
     for (projectile_entity, projectile_transform) in projectile_q.iter() {
         for (enemy_entity, enemy_transform, mut enemy_health) in enemy_q.iter_mut() {
