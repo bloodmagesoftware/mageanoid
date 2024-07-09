@@ -47,7 +47,11 @@ fn spawn_cat(
         AnimatedSpriteBundle {
             sprite: SpriteBundle {
                 texture,
-                transform: Transform::from_scale(Vec3::splat(1.0)),
+                transform: Transform::from_scale(Vec3::splat(1.0)).with_translation(Vec3::new(
+                    -CAT_SPEED / 2.0,
+                    CAT_SPEED / 2.0,
+                    0.0,
+                )),
                 ..default()
             },
             atlas: TextureAtlas {

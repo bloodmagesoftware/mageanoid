@@ -18,6 +18,7 @@
 
 use bevy::audio::PlaybackMode;
 use bevy::prelude::*;
+use bevy_persistent::Persistent;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
@@ -27,6 +28,7 @@ use crate::gameplay::health::*;
 use crate::gameplay::movement::*;
 use crate::gameplay::player::*;
 use crate::gameplay::projectile::*;
+use crate::persistent::Score;
 use crate::state::{AppState, ON_EXIT_GAMEPLAY};
 
 const ENEMY_SPEED: f32 = 40.0;
@@ -153,6 +155,7 @@ fn projectile_hit_enemy(
     mut enemy_q: Query<(Entity, &Transform, &mut Health), With<Enemy>>,
     projectile_q: Query<(Entity, &Transform), With<Projectile>>,
     asset_server: Res<AssetServer>,
+    mut score: ResMut<Persistent<Score>>,
 ) {
     for (projectile_entity, projectile_transform) in projectile_q.iter() {
         for (enemy_entity, enemy_transform, mut enemy_health) in enemy_q.iter_mut() {
@@ -163,6 +166,7 @@ fn projectile_hit_enemy(
             {
                 if enemy_health.damage(1.0) {
                     commands.entity(enemy_entity).despawn_recursive();
+                    score.increase(1);
                 }
                 enemy_hit_fx(&mut commands, &asset_server);
                 commands.entity(projectile_entity).despawn_recursive();

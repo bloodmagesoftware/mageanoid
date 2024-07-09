@@ -17,9 +17,11 @@
  */
 
 use bevy::prelude::*;
+use bevy_persistent::Persistent;
 
 use crate::gameplay::health::Health;
 use crate::gameplay::player::Player;
+use crate::persistent::Score;
 use crate::state::AppState;
 
 #[derive(Component, Debug)]
@@ -27,6 +29,9 @@ struct Hud;
 
 #[derive(Component, Debug)]
 pub struct HealthBar;
+
+#[derive(Component, Debug)]
+pub struct ScoreText;
 
 fn spawn_ui(mut commands: Commands) {
     let container = NodeBundle {
@@ -76,10 +81,20 @@ fn spawn_ui(mut commands: Commands) {
         ..default()
     };
 
+    let score_text = TextBundle::from_section(
+        "",
+        TextStyle {
+            font_size: 40.0,
+            color: Color::WHITE,
+            ..default()
+        },
+    );
+
     commands.spawn((Hud, container)).with_children(|parent| {
         parent.spawn(health_bar_outer).with_children(|parent| {
             parent.spawn((HealthBar, health_bar_inner));
         });
+        parent.spawn((ScoreText, score_text));
     });
 }
 
@@ -97,6 +112,15 @@ fn update_health_bar(
     }
 }
 
+fn update_score_text(mut query: Query<&mut Text, With<ScoreText>>, score: Res<Persistent<Score>>) {
+    for mut text in query.iter_mut() {
+        text.sections[0].value = format!(
+            "Score: {}\nHigh Score: {}",
+            score.current_score, score.high_score
+        );
+    }
+}
+
 fn despawn_hud(mut commands: Commands, query: Query<Entity, With<Hud>>) {
     for entity in query.iter() {
         commands.entity(entity).despawn_recursive();
@@ -108,7 +132,10 @@ pub struct HudPlugin;
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(AppState::InGame), spawn_ui)
-            .add_systems(Update, update_health_bar.run_if(in_state(AppState::InGame)))
+            .add_systems(
+                Update,
+                (update_health_bar, update_score_text).run_if(in_state(AppState::InGame)),
+            )
             .add_systems(OnExit(AppState::InGame), despawn_hud);
     }
 }

@@ -58,7 +58,7 @@ fn spawn_player(
 
     commands.spawn((
         Player::default(),
-        Health::new(10.0),
+        Health::new(5.0),
         SpriteBundle {
             texture,
             transform: Transform::from_scale(Vec3::splat(1.0)),
