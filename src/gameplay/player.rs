@@ -123,13 +123,13 @@ fn player_projectile(
             {
                 let direction = (world_position - player_transform.translation().xy()).normalize();
 
-                commands.spawn(ProjectileBundle::new(
+                ProjectileBundle::spawn(
+                    &mut commands,
                     &asset_server,
                     &mut texture_atlas_layouts,
                     player_transform.translation(),
                     direction,
-                ));
-                spell_sound_fx(&mut commands, &asset_server);
+                );
 
                 player.projectile_spawn_timer.reset();
                 return;
@@ -149,13 +149,13 @@ fn player_projectile(
         let direction = Vec2::new(x, y);
 
         if direction.length() > 0.25 {
-            commands.spawn(ProjectileBundle::new(
+            ProjectileBundle::spawn(
+                &mut commands,
                 &asset_server,
                 &mut texture_atlas_layouts,
                 player_transform.translation(),
                 direction.normalize(),
-            ));
-            spell_sound_fx(&mut commands, &asset_server);
+            );
 
             player.projectile_spawn_timer.reset();
             return;
@@ -174,34 +174,17 @@ fn player_projectile(
         {
             let direction = (world_position - player_transform.translation().xy()).normalize();
 
-            commands.spawn(ProjectileBundle::new(
+            ProjectileBundle::spawn(
+                &mut commands,
                 &asset_server,
                 &mut texture_atlas_layouts,
                 player_transform.translation(),
                 direction,
-            ));
-            spell_sound_fx(&mut commands, &asset_server);
+            );
 
             player.projectile_spawn_timer.reset();
         }
     }
-}
-
-fn spell_sound_fx(commands: &mut Commands, asset_server: &Res<AssetServer>) {
-    commands.spawn(AudioBundle {
-        source: asset_server.load("sounds/56_Attack_03.wav"),
-        settings: PlaybackSettings {
-            mode: PlaybackMode::Despawn,
-            ..default()
-        },
-    });
-    commands.spawn(AudioBundle {
-        source: asset_server.load("sounds/18_Thunder_02.wav"),
-        settings: PlaybackSettings {
-            mode: PlaybackMode::Despawn,
-            ..default()
-        },
-    });
 }
 
 fn player_step_sound_fx(

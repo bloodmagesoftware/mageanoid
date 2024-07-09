@@ -31,10 +31,7 @@ pub const ON_ENTER_GAMEPLAY: OnTransition<AppState> = OnTransition {
     entered: AppState::InGame,
 };
 
-pub const ON_EXIT_GAMEPLAY: OnTransition<AppState> = OnTransition {
-    exited: AppState::Paused,
-    entered: AppState::MainMenu,
-};
+pub const ON_EXIT_GAMEPLAY: OnEnter<AppState> = OnEnter(AppState::MainMenu);
 
 pub struct AppStatePlugin;
 

@@ -16,11 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+use bevy::audio::PlaybackMode;
 use bevy::prelude::*;
 
 use crate::gameplay::anim::*;
 use crate::gameplay::movement::*;
-use crate::state::AppState;
+use crate::state::{AppState, ON_EXIT_GAMEPLAY};
 
 #[derive(Component, Debug)]
 pub struct Projectile;
@@ -33,19 +34,20 @@ pub struct ProjectileBundle {
 }
 
 impl ProjectileBundle {
-    pub fn new(
+    pub fn spawn(
+        commands: &mut Commands,
         asset_server: &Res<AssetServer>,
         texture_atlas_layouts: &mut ResMut<Assets<TextureAtlasLayout>>,
         position: Vec3,
         direction: Vec2,
-    ) -> Self {
+    ) {
         let texture = asset_server.load("sprites/projectile.png");
         let layout = TextureAtlasLayout::from_grid(UVec2::new(64, 64), 4, 1, None, None);
         let texture_atlas_layout = texture_atlas_layouts.add(layout);
 
         let animation_indices = AnimationIndices::new(0, 3);
 
-        ProjectileBundle {
+        let projectile = ProjectileBundle {
             projectile: Projectile,
             animated_sprite: AnimatedSpriteBundle {
                 sprite: SpriteBundle {
@@ -63,7 +65,26 @@ impl ProjectileBundle {
             moving_object: MovingObjectBundle {
                 velocity: Velocity::from_vec2(direction, 1024.0),
             },
-        }
+        };
+        let attack_sound = AudioBundle {
+            source: asset_server.load("sounds/56_Attack_03.wav"),
+            settings: PlaybackSettings {
+                mode: PlaybackMode::Despawn,
+                ..default()
+            },
+        };
+        let thunder_sound = AudioBundle {
+            source: asset_server.load("sounds/18_Thunder_02.wav"),
+            settings: PlaybackSettings {
+                mode: PlaybackMode::Despawn,
+                ..default()
+            },
+        };
+
+        commands.spawn(projectile).with_children(|parent| {
+            parent.spawn(attack_sound);
+            parent.spawn(thunder_sound);
+        });
     }
 }
 
@@ -78,13 +99,20 @@ fn projectile_out_of_bounds(
     }
 }
 
+fn despawn_projectile(mut commands: Commands, projectile_q: Query<Entity, With<Projectile>>) {
+    for entity in projectile_q.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+}
+
 pub struct ProjectilePlugin;
 
 impl Plugin for ProjectilePlugin {
-    fn build(&self, _app: &mut App) {
-        _app.add_systems(
+    fn build(&self, app: &mut App) {
+        app.add_systems(
             Update,
             projectile_out_of_bounds.run_if(in_state(AppState::InGame)),
-        );
+        )
+        .add_systems(ON_EXIT_GAMEPLAY, despawn_projectile);
     }
 }
