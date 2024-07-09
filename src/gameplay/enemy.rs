@@ -91,7 +91,7 @@ fn spawn_enemy(
 
         commands.spawn((
             Enemy::default(),
-            Health::new(1),
+            Health::new(1.0),
             SpriteBundle {
                 texture,
                 transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(Vec3::new(
@@ -116,17 +116,18 @@ fn spawn_enemy(
 
 fn enemy_attack(
     mut enemy_q: Query<(&mut Enemy, &GlobalTransform)>,
-    player_q: Query<&Transform, With<Player>>,
+    mut player_q: Query<(&Transform, &mut Health), With<Player>>,
     time: Res<Time>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
+    mut next_state: ResMut<NextState<AppState>>,
 ) {
     for (mut enemy, enemy_transform) in enemy_q.iter_mut() {
         enemy.sword_hit_timer.tick(time.delta());
         if !enemy.sword_hit_timer.finished() {
             continue;
         }
-        for player_transform in player_q.iter() {
+        for (player_transform, mut player_health) in player_q.iter_mut() {
             let direction = player_transform.translation - enemy_transform.translation();
             if direction.length() <= ENEMY_THRESHOLD {
                 enemy.animation_state = match enemy.animation_state {
@@ -134,6 +135,9 @@ fn enemy_attack(
                     EnemyState::SwingBlade => EnemyState::ReadyBlade,
                     EnemyState::ReadyBlade => {
                         enemy_attack_fx(&mut commands, &asset_server);
+                        if player_health.damage(1.0) {
+                            next_state.set(AppState::MainMenu);
+                        }
                         EnemyState::SwingBlade
                     }
                 };
@@ -157,7 +161,7 @@ fn projectile_hit_enemy(
                 .distance(enemy_transform.translation)
                 < ENEMY_THRESHOLD
             {
-                if enemy_health.damage(1) {
+                if enemy_health.damage(1.0) {
                     commands.entity(enemy_entity).despawn_recursive();
                 }
                 enemy_hit_fx(&mut commands, &asset_server);

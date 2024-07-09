@@ -19,7 +19,7 @@
 use bevy::prelude::*;
 
 use crate::state::AppState;
-use crate::style::{text_button, text_title, v_space, ButtonId};
+use crate::style::{ButtonId, text_button, text_title, v_space};
 
 #[derive(Component, Debug)]
 struct PauseMenu;
@@ -77,7 +77,7 @@ fn despawn_pause_menu(mut commands: Commands, query: Query<Entity, With<PauseMen
     }
 }
 
-fn button_press_pause(
+fn toggle_pause(
     state: Res<State<AppState>>,
     mut next_state: ResMut<NextState<AppState>>,
     keys: Res<ButtonInput<KeyCode>>,
@@ -105,16 +105,15 @@ fn button_press_pause(
     }
 }
 
-pub struct HudPlugin;
+pub struct PauseMenuPlugin;
 
-impl Plugin for HudPlugin {
+impl Plugin for PauseMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(AppState::Paused), spawn_pause_menu)
             .add_systems(Update, on_button_click.run_if(in_state(AppState::Paused)))
             .add_systems(
                 Update,
-                button_press_pause
-                    .run_if(in_state(AppState::InGame).or_else(in_state(AppState::Paused))),
+                toggle_pause.run_if(in_state(AppState::InGame).or_else(in_state(AppState::Paused))),
             )
             .add_systems(OnExit(AppState::Paused), despawn_pause_menu);
     }

@@ -21,6 +21,7 @@ use bevy::input::mouse::MouseButtonInput;
 use bevy::prelude::*;
 
 use crate::gameplay::anim::*;
+use crate::gameplay::health::Health;
 use crate::gameplay::movement::*;
 use crate::gameplay::projectile::*;
 use crate::state::{AppState, ON_ENTER_GAMEPLAY, ON_EXIT_GAMEPLAY};
@@ -57,6 +58,7 @@ fn spawn_player(
 
     commands.spawn((
         Player::default(),
+        Health::new(10.0),
         SpriteBundle {
             texture,
             transform: Transform::from_scale(Vec3::splat(2.0)),
@@ -94,9 +96,9 @@ fn player_projectile(
     // touch
     touches: Res<Touches>,
 ) {
-    let (mut player, player_transform) = match player_q.iter_mut().next() {
-        Some(player) => player,
-        None => return,
+    let (mut player, player_transform) = match player_q.get_single_mut() {
+        Ok(player) => player,
+        Err(_) => return,
     };
 
     player.projectile_spawn_timer.tick(time.delta());

@@ -20,20 +20,31 @@ use bevy::prelude::*;
 
 #[derive(Component, Debug)]
 pub struct Health {
-    pub health: i32,
+    pub health: f32,
+    pub max_health: f32,
 }
 
 impl Health {
-    pub fn new(max_health: i32) -> Self {
-        Self { health: max_health }
+    pub fn new(max_health: f32) -> Self {
+        Self {
+            health: max_health,
+            max_health,
+        }
     }
 
     /**
      * Returns true if the entity is dead
      */
-    pub fn damage(&mut self, damage: i32) -> bool {
-        self.health = (self.health - damage).max(0);
-        self.health == 0
+    pub fn damage(&mut self, damage: f32) -> bool {
+        self.health = (self.health - damage).max(0.0);
+        self.health == 0.0
+    }
+
+    /**
+     * Returns the health percentage [0.0, 100.0]
+     */
+    pub fn health_percentage(&self) -> f32 {
+        (self.health / self.max_health) * 100.0
     }
 }
 

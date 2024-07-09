@@ -22,6 +22,7 @@ mod anim;
 mod cat;
 mod enemy;
 mod health;
+mod hud;
 mod movement;
 mod overlap;
 mod pause_menu;
@@ -36,9 +37,10 @@ impl Plugin for GameplayPlugin {
             .add_plugins(cat::CatPlugin)
             .add_plugins(enemy::EnemyPlugin)
             .add_plugins(health::HealthPlugin)
-            .add_plugins(pause_menu::HudPlugin)
+            .add_plugins(hud::HudPlugin)
             .add_plugins(movement::MovementPlugin)
             .add_plugins(overlap::OverlapPlugin)
+            .add_plugins(pause_menu::PauseMenuPlugin)
             .add_plugins(player::PlayerPlugin)
             .add_plugins(projectile::ProjectilePlugin);
     }
