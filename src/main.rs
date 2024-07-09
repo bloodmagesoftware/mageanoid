@@ -22,6 +22,7 @@ use bevy_rand::prelude::EntropyPlugin;
 
 mod cam;
 mod gameplay;
+mod ldtk;
 mod mainmenu;
 mod state;
 mod style;
@@ -33,6 +34,7 @@ fn main() {
         .add_plugins(EntropyPlugin::<WyRand>::default())
         .add_plugins(cam::CamPlugin)
         .add_plugins(gameplay::GameplayPlugin)
+        .add_plugins(ldtk::LdtkPlugin)
         .add_plugins(mainmenu::MainMenuPlugin)
         .add_plugins(state::AppStatePlugin)
         .add_plugins(style::StylePlugin);

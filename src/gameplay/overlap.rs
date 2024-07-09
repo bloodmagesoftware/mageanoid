@@ -20,9 +20,12 @@ use bevy::prelude::*;
 
 use crate::state::AppState;
 
-fn overlap(mut transform_q: Query<&mut Transform>) {
+#[derive(Component, Debug)]
+pub struct StaticObject;
+
+fn overlap(mut transform_q: Query<&mut Transform, Without<StaticObject>>) {
     for mut transform in transform_q.iter_mut() {
-        transform.translation.z = -transform.translation.y;
+        transform.translation.z = -transform.translation.y / 1000.0;
     }
 }
 

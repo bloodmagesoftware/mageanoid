@@ -23,8 +23,8 @@ use crate::gameplay::movement::*;
 use crate::gameplay::player::*;
 use crate::state::{AppState, ON_ENTER_GAMEPLAY, ON_EXIT_GAMEPLAY};
 
-const CAT_SPEED: f32 = 75.0;
-const CAT_THRESHOLD: f32 = 100.0;
+const CAT_SPEED: f32 = 110.0;
+const CAT_THRESHOLD: f32 = CAT_SPEED + 20.0;
 
 pub struct CatPlugin;
 
@@ -47,7 +47,7 @@ fn spawn_cat(
         AnimatedSpriteBundle {
             sprite: SpriteBundle {
                 texture,
-                transform: Transform::from_scale(Vec3::splat(2.0)),
+                transform: Transform::from_scale(Vec3::splat(1.0)),
                 ..default()
             },
             atlas: TextureAtlas {

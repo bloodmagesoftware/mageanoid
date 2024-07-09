@@ -19,6 +19,8 @@
 use bevy::math::f32;
 use bevy::prelude::*;
 
+use crate::gameplay::player::Player;
+use crate::ldtk::pos_inside_level;
 use crate::state::AppState;
 
 #[derive(Component, Debug)]
@@ -45,15 +47,39 @@ pub struct MovingObjectBundle {
     pub velocity: Velocity,
 }
 
-fn update_position(mut movable_object_q: Query<(&Velocity, &mut Transform)>, time: Res<Time>) {
+fn update_position(
+    mut movable_object_q: Query<(&Velocity, &mut Transform), Without<Player>>,
+    time: Res<Time>,
+) {
     for (movable_object_velocity, mut movable_object_transform) in movable_object_q.iter_mut() {
-        movable_object_transform.translation +=
-            movable_object_velocity.direction.normalize_or_zero()
+        let new_translation = movable_object_transform.translation
+            + movable_object_velocity.direction.normalize_or_zero()
                 * f32::min(
                     movable_object_velocity.speed,
                     movable_object_velocity.direction.length() * movable_object_velocity.speed,
                 )
                 * time.delta_seconds();
+
+        movable_object_transform.translation = new_translation;
+    }
+}
+
+fn update_player_position(
+    mut movable_object_q: Query<(&Velocity, &mut Transform), With<Player>>,
+    time: Res<Time>,
+) {
+    for (movable_object_velocity, mut movable_object_transform) in movable_object_q.iter_mut() {
+        let new_translation = movable_object_transform.translation
+            + movable_object_velocity.direction.normalize_or_zero()
+                * f32::min(
+                    movable_object_velocity.speed,
+                    movable_object_velocity.direction.length() * movable_object_velocity.speed,
+                )
+                * time.delta_seconds();
+
+        if pos_inside_level(&new_translation) {
+            movable_object_transform.translation = new_translation;
+        }
     }
 }
 
@@ -61,6 +87,9 @@ pub struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_position.run_if(in_state(AppState::InGame)));
+        app.add_systems(
+            Update,
+            (update_position, update_player_position).run_if(in_state(AppState::InGame)),
+        );
     }
 }

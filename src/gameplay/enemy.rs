@@ -94,7 +94,7 @@ fn spawn_enemy(
             Health::new(1.0),
             SpriteBundle {
                 texture,
-                transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(Vec3::new(
+                transform: Transform::from_scale(Vec3::splat(1.0)).with_translation(Vec3::new(
                     player_transform.translation.x + distance * radius.cos(),
                     player_transform.translation.y + distance * radius.sin(),
                     0.0,
@@ -159,7 +159,7 @@ fn projectile_hit_enemy(
             if projectile_transform
                 .translation
                 .distance(enemy_transform.translation)
-                < ENEMY_THRESHOLD
+                < 64.0
             {
                 if enemy_health.damage(1.0) {
                     commands.entity(enemy_entity).despawn_recursive();

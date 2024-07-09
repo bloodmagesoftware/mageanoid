@@ -23,10 +23,10 @@ mod cat;
 mod enemy;
 mod health;
 mod hud;
-mod movement;
-mod overlap;
+pub mod movement;
+pub mod overlap;
 mod pause_menu;
-mod player;
+pub mod player;
 mod projectile;
 
 pub struct GameplayPlugin;

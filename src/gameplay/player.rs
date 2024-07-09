@@ -61,7 +61,7 @@ fn spawn_player(
         Health::new(10.0),
         SpriteBundle {
             texture,
-            transform: Transform::from_scale(Vec3::splat(2.0)),
+            transform: Transform::from_scale(Vec3::splat(1.0)),
             ..default()
         },
         TextureAtlas {

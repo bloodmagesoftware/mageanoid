@@ -52,7 +52,7 @@ impl ProjectileBundle {
             animated_sprite: AnimatedSpriteBundle {
                 sprite: SpriteBundle {
                     texture,
-                    transform: Transform::from_scale(Vec3::splat(2.0)).with_translation(position),
+                    transform: Transform::from_scale(Vec3::splat(1.0)).with_translation(position),
                     ..default()
                 },
                 atlas: TextureAtlas {
@@ -63,7 +63,7 @@ impl ProjectileBundle {
                 timer: AnimationTimer(Timer::from_seconds(0.125, TimerMode::Repeating)),
             },
             moving_object: MovingObjectBundle {
-                velocity: Velocity::from_vec2(direction, 1024.0),
+                velocity: Velocity::from_vec2(direction, 512.0),
             },
         };
         let attack_sound = AudioBundle {
