@@ -19,7 +19,7 @@
 use bevy::prelude::*;
 
 use crate::state::AppState;
-use crate::style::{text_button, text_title, v_space, ButtonId};
+use crate::style::{ButtonId, text_button, text_title, v_space};
 
 #[derive(Component, Debug)]
 struct PauseMenu;
@@ -60,13 +60,12 @@ fn on_button_click(
     button_q: Query<(&Interaction, &ButtonId), (Changed<Interaction>, With<Button>)>,
 ) {
     for (interaction, button_id) in button_q.iter() {
-        match *interaction {
-            Interaction::Pressed => match button_id.id {
+        if *interaction == Interaction::Pressed {
+            match button_id.id {
                 0 => next_state.set(AppState::InGame),
                 1 => next_state.set(AppState::MainMenu),
                 _ => {}
-            },
-            _ => {}
+            }
         }
     }
 }
