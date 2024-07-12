@@ -331,7 +331,7 @@ jobs:
           path: linux-executable
       - name: Rename Linux executable
         run: |
-          mv /mageanoid dist/mageanoid_linux_x86
+          mv mageanoid dist/mageanoid_linux_x86
           chmod 777 dist/mageanoid_linux_x86
           rm -rf linux-executable
 
