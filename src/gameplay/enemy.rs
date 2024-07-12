@@ -163,6 +163,7 @@ fn projectile_hit_enemy(
     #[cfg(feature = "storage")] mut score: ResMut<Persistent<Score>>,
     #[cfg(not(feature = "storage"))] mut score: ResMut<Score>,
 ) {
+    let mut fx = false;
     for (projectile_entity, projectile_transform) in projectile_q.iter() {
         for (enemy_entity, enemy_transform, mut enemy_health) in enemy_q.iter_mut() {
             if projectile_transform
@@ -174,7 +175,10 @@ fn projectile_hit_enemy(
                     commands.entity(enemy_entity).despawn_recursive();
                     score.increase(1);
                 }
-                enemy_hit_fx(&mut commands, &asset_server);
+                if !fx {
+                    fx = true;
+                    enemy_hit_fx(&mut commands, &asset_server);
+                }
                 commands.entity(projectile_entity).despawn_recursive();
             }
         }

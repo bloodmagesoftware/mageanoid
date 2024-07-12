@@ -19,6 +19,7 @@
 use bevy::audio::PlaybackMode;
 use bevy::prelude::*;
 
+use crate::ext::IntoVec3;
 use crate::gameplay::anim::*;
 use crate::gameplay::movement::*;
 use crate::state::{AppState, ON_EXIT_GAMEPLAY};
@@ -52,7 +53,11 @@ impl ProjectileBundle {
             animated_sprite: AnimatedSpriteBundle {
                 sprite: SpriteBundle {
                     texture,
-                    transform: Transform::from_scale(Vec3::splat(1.0)).with_translation(position),
+                    transform: Transform {
+                        translation: position + (direction * 64.0).xyz(),
+                        rotation: Quat::IDENTITY,
+                        scale: Vec3::ONE,
+                    },
                     ..default()
                 },
                 atlas: TextureAtlas {
