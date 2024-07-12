@@ -157,7 +157,7 @@ jobs:
           cp target/x86_64-apple-darwin/release/${{ env.binary }} dist/${{ env.binary }}.app/Contents/MacOS/
           cp -r assets dist/${{ env.binary }}.app/Contents/MacOS/ || true # Try to copy, but ignore if it can't copy if source directory does not exist
           ln -s /Applications dist/Applications
-          hdiutil create -fs HFS+ -volname "${{ env.binary }}" -srcfolder dist ${{ env.binary }}-macOS-intel.dmg
+          hdiutil create -fs HFS+ -volname "${{ env.binary }}" -srcfolder dist -format UDRO ${{ env.binary }}-macOS-intel.dmg
 
       - name: Upload binaries to artifacts
         uses: actions/upload-artifact@v4
@@ -211,7 +211,7 @@ jobs:
           cp target/aarch64-apple-darwin/release/${{ env.binary }} dist/${{ env.binary }}.app/Contents/MacOS/
           cp -r assets dist/${{ env.binary }}.app/Contents/MacOS/ || true # Try to copy, but ignore if it can't copy if source directory does not exist
           ln -s /Applications dist/Applications
-          hdiutil create -fs HFS+ -volname "${{ env.binary }}-macOS-apple-silicon" -srcfolder dist ${{ env.binary }}-macOS-apple-silicon.dmg
+          hdiutil create -fs HFS+ -volname "${{ env.binary }}-macOS-apple-silicon" -srcfolder dist -format UDRO ${{ env.binary }}-macOS-apple-silicon.dmg
 
       - name: Upload binaries to artifacts
         uses: actions/upload-artifact@v4
