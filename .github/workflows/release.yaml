@@ -328,9 +328,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: linux-executable
+          path: linux-executable
       - name: Rename Linux executable
         run: |
-          mv linux-executable/mageanoid dist/mageanoid_linux_x86
+          mv /mageanoid dist/mageanoid_linux_x86
           chmod 777 dist/mageanoid_linux_x86
           rm -rf linux-executable
 
@@ -338,6 +339,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: windows-executable
+          path: windows-executable
       - name: Rename Windows executable
         run: |
           mv windows-executable/mageanoid.exe dist/mageanoid.exe
@@ -347,6 +349,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: mac-x86-executable
+          path: mac-x86-executable
       - name: Rename MacOS executables
         run: |
           mv mac-x86-executable/mageanoid dist/mageanoid_mac_x86
@@ -357,6 +360,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: mac-arm-executable
+          path: mac-arm-executable
       - name: Rename MacOS Apple Silicon executables
         run: |
           mv mac-arm-executable/mageanoid dist/mageanoid_mac_arm
