@@ -59,6 +59,13 @@ jobs:
           name: linux
           retention-days: 1
 
+      - name: Upload executable to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          path: linux/${{ env.binary }}
+          name: linux-executable
+          retention-days: 1
+
       - name: Upload binaries to release
         if: ${{ env.add_binaries_to_github_release == 'true' }}
         uses: svenstaro/upload-release-action@v2
@@ -103,6 +110,13 @@ jobs:
         with:
           path: ${{ env.binary }}.zip
           name: windows
+          retention-days: 1
+
+      - name: Upload executable to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          path: windows/${{ env.binary }}.exe
+          name: windows-executable
           retention-days: 1
 
       - name: Upload binaries to release
@@ -152,6 +166,13 @@ jobs:
           name: macOS-intel
           retention-days: 1
 
+      - name: Upload executable to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          path: target/x86_64-apple-darwin/release/${{ env.binary }}
+          name: mac-x86-executable
+          retention-days: 1
+
       - name: Upload binaries to release
         if: ${{ env.add_binaries_to_github_release == 'true' }}
         uses: svenstaro/upload-release-action@v2
@@ -198,6 +219,13 @@ jobs:
           name: macOS-apple-silicon
           retention-days: 1
 
+      - name: Upload executable to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          path: target/aarch64-apple-darwin/release/${{ env.binary }}
+          name: mac-arm-executable
+          retention-days: 1
+
       - name: Upload binaries to release
         if: ${{ env.add_binaries_to_github_release == 'true' }}
         uses: svenstaro/upload-release-action@v2
@@ -219,6 +247,21 @@ jobs:
             echo "has-itch-target=no" >> $GITHUB_OUTPUT
           else
             echo "has-itch-target=yes" >> $GITHUB_OUTPUT
+          fi
+
+  check-if-upload-to-steam-it-configured:
+    runs-on: ubuntu-latest
+    outputs:
+      should-upload: ${{ steps.check-env.outputs.has-steam-app-id }}
+    steps:
+      - id: check-env
+        env:
+          steam_app_id: ${{ secrets.STEAM_APP_ID }}
+        run: |
+          if [[ -z "$steam_app_id" ]]; then
+            echo "has-steam-app-id=no" >> $GITHUB_OUTPUT
+          else
+            echo "has-steam-app-id=yes" >> $GITHUB_OUTPUT
           fi
 
   upload-to-itch:
@@ -256,3 +299,80 @@ jobs:
                 builds/$channel/* \
                 ${{ env.itch_target }}:$channel
           done
+
+
+  upload-to-steam:
+    runs-on: ubuntu-latest
+    needs:
+      - check-if-upload-to-steam-it-configured
+      - release-linux
+      - release-windows
+      - release-macOS-intel
+      - release-macOS-apple-silicon
+    if: ${{ needs.check-if-upload-to-steam-it-configured.outputs.should-upload == 'yes' }}
+
+    steps:
+      - uses: olegtarasov/get-tag@2.1.3
+        id: get_version
+
+      - name: Clone repository
+        uses: actions/checkout@v4
+        with:
+          path: source
+          lfs: ${{ env.use_git_lfs }}
+
+      - name: Dist folder
+        run: mkdir -p dist
+
+      - name: Download Linux executable
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-executable
+      - name: Rename Linux executable
+        run: |
+          mv linux-executable/mageanoid dist/mageanoid_linux_x86
+          chmod 777 dist/mageanoid_linux_x86
+          rm -rf linux-executable
+
+      - name: Download Windows executable
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-executable
+      - name: Rename Windows executable
+        run: |
+          mv windows-executable/mageanoid.exe dist/mageanoid.exe
+          rm -rf windows-executable
+
+      - name: Download MacOS x86 executables
+        uses: actions/download-artifact@v4
+        with:
+          name: mac-x86-executable
+      - name: Rename MacOS executables
+        run: |
+          mv mac-x86-executable/mageanoid dist/mageanoid_mac_x86
+          chmod 777 dist/mageanoid_mac_x86
+          rm -rf mac-x86-executable
+
+      - name: Download MacOS Apple Silicon executables
+        uses: actions/download-artifact@v4
+        with:
+          name: mac-arm-executable
+      - name: Rename MacOS Apple Silicon executables
+        run: |
+          mv mac-arm-executable/mageanoid dist/mageanoid_mac_arm
+          chmod 777 dist/mageanoid_mac_arm
+          rm -rf mac-arm-executable
+
+      - name: Move assets to dist
+        run: mv source/assets dist
+
+      - name: Upload to Steam
+        uses: game-ci/steam-deploy@v3
+        with:
+          username: ${{ secrets.STEAM_USERNAME }}
+          configVdf: ${{ secrets.STEAM_CONFIG_VDF}}
+          appId: ${{ secrets.STEAM_APP_ID }}
+          buildDescription: "Build ${{ steps.get_version.outputs.tag }}"
+          rootPath: dist
+          depot1Path: .
+          releaseBranch: rc
