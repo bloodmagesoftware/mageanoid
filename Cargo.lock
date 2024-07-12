@@ -2470,6 +2470,7 @@ dependencies = [
  "bevy_prng",
  "bevy_rand",
  "bevy_ui",
+ "bevy_window",
  "dirs",
  "rand_core",
  "serde",

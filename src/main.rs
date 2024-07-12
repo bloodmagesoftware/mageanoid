@@ -21,6 +21,7 @@ use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyPlugin;
 
 mod cam;
+mod ext;
 mod gameplay;
 mod ldtk;
 mod mainmenu;
@@ -31,15 +32,31 @@ mod style;
 fn main() {
     let mut app = App::new();
 
-    app.add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-        .add_plugins(EntropyPlugin::<WyRand>::default())
-        .add_plugins(cam::CamPlugin)
-        .add_plugins(gameplay::GameplayPlugin)
-        .add_plugins(ldtk::LdtkPlugin)
-        .add_plugins(mainmenu::MainMenuPlugin)
-        .add_plugins(persistent::PersistentPlugin)
-        .add_plugins(state::AppStatePlugin)
-        .add_plugins(style::StylePlugin);
+    app.add_plugins(
+        DefaultPlugins
+            .set(ImagePlugin::default_nearest())
+            .set(WindowPlugin {
+                primary_window: Some(Window {
+                    title: "Mageanoid".into(),
+                    name: Some("Mageanoid".into()),
+                    present_mode: bevy_window::PresentMode::AutoVsync,
+                    mode: bevy_window::WindowMode::BorderlessFullscreen,
+                    fit_canvas_to_parent: true,
+                    prevent_default_event_handling: false,
+                    window_theme: Some(bevy_window::WindowTheme::Dark),
+                    ..default()
+                }),
+                ..default()
+            }),
+    )
+    .add_plugins(EntropyPlugin::<WyRand>::default())
+    .add_plugins(cam::CamPlugin)
+    .add_plugins(gameplay::GameplayPlugin)
+    .add_plugins(ldtk::LdtkPlugin)
+    .add_plugins(mainmenu::MainMenuPlugin)
+    .add_plugins(persistent::PersistentPlugin)
+    .add_plugins(state::AppStatePlugin)
+    .add_plugins(style::StylePlugin);
 
     app.run();
 }

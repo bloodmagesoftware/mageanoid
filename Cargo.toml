@@ -17,6 +17,7 @@ rand_core = "0.6.4"
 wyrand = "0.2.0"
 dirs = "5.0.1"
 serde = "1.0.204"
+bevy_window = "0.14.0"
 
 [dev-dependencies]
 bevy = { version = "0.14.0", features = ["dynamic_linking", "bevy_dev_tools"] }
