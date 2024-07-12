@@ -210,6 +210,7 @@ jobs:
           mkdir -p dist/${{ env.binary }}.app/Contents/MacOS
           cp target/aarch64-apple-darwin/release/${{ env.binary }} dist/${{ env.binary }}.app/Contents/MacOS/
           cp -r assets dist/${{ env.binary }}.app/Contents/MacOS/ || true # Try to copy, but ignore if it can't copy if source directory does not exist
+          ln -s /Applications dist/Applications
           hdiutil create -fs HFS+ -volname "${{ env.binary }}-macOS-apple-silicon" -srcfolder dist ${{ env.binary }}-macOS-apple-silicon.dmg
 
       - name: Upload binaries to artifacts
