@@ -83,6 +83,43 @@ fn on_button_click(
     }
 }
 
+fn gamepad_input(
+    mut next_state: ResMut<NextState<AppState>>,
+    gamepad_q: Res<Gamepads>,
+    buttons: Res<ButtonInput<GamepadButton>>,
+    mut app_exit_events: ResMut<Events<AppExit>>,
+) {
+    for gamepad in gamepad_q.iter() {
+        if buttons.any_just_pressed([
+            GamepadButton {
+                gamepad,
+                button_type: GamepadButtonType::South,
+            },
+            GamepadButton {
+                gamepad,
+                button_type: GamepadButtonType::East,
+            },
+        ]) {
+            app_exit_events.send(AppExit::Success);
+            return;
+        }
+
+        if buttons.any_just_pressed([
+            GamepadButton {
+                gamepad,
+                button_type: GamepadButtonType::West,
+            },
+            GamepadButton {
+                gamepad,
+                button_type: GamepadButtonType::North,
+            },
+        ]) {
+            next_state.set(AppState::InGame);
+            return;
+        }
+    }
+}
+
 fn despawn_ui(mut commands: Commands, query: Query<Entity, With<MainMenu>>) {
     for entity in query.iter() {
         commands.entity(entity).despawn_recursive();
@@ -93,6 +130,7 @@ impl Plugin for MainMenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(AppState::MainMenu), spawn_ui)
             .add_systems(Update, on_button_click.run_if(in_state(AppState::MainMenu)))
+            .add_systems(Update, gamepad_input.run_if(in_state(AppState::MainMenu)))
             .add_systems(OnExit(AppState::MainMenu), despawn_ui);
     }
 }

@@ -86,10 +86,9 @@ impl ProjectileBundle {
             },
         };
 
-        commands.spawn(projectile).with_children(|parent| {
-            parent.spawn(attack_sound);
-            parent.spawn(thunder_sound);
-        });
+        commands.spawn(projectile);
+        commands.spawn(attack_sound);
+        commands.spawn(thunder_sound);
     }
 }
 

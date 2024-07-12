@@ -80,7 +80,7 @@ fn toggle_pause(
     state: Res<State<AppState>>,
     mut next_state: ResMut<NextState<AppState>>,
     keys: Res<ButtonInput<KeyCode>>,
-    gamepads: Res<Gamepads>,
+    gamepad_q: Res<Gamepads>,
     buttons: Res<ButtonInput<GamepadButton>>,
 ) {
     if keys.just_pressed(KeyCode::Escape) {
@@ -91,14 +91,44 @@ fn toggle_pause(
         return;
     }
 
-    for gamepad in gamepads.iter() {
-        let pause_button = GamepadButton {
+    for gamepad in gamepad_q.iter() {
+        let start_button = GamepadButton {
             gamepad,
             button_type: GamepadButtonType::Start,
         };
+        if buttons.just_pressed(start_button) {
+            next_state.set(match state.get() {
+                AppState::Paused => AppState::InGame,
+                _ => AppState::Paused,
+            });
+            return;
+        }
 
-        if buttons.just_pressed(pause_button) {
-            next_state.set(AppState::Paused);
+        if buttons.any_just_pressed([
+            GamepadButton {
+                gamepad,
+                button_type: GamepadButtonType::South,
+            },
+            GamepadButton {
+                gamepad,
+                button_type: GamepadButtonType::East,
+            },
+        ]) {
+            next_state.set(AppState::MainMenu);
+            return;
+        }
+
+        if buttons.any_just_pressed([
+            GamepadButton {
+                gamepad,
+                button_type: GamepadButtonType::West,
+            },
+            GamepadButton {
+                gamepad,
+                button_type: GamepadButtonType::North,
+            },
+        ]) {
+            next_state.set(AppState::InGame);
             return;
         }
     }
