@@ -30,11 +30,9 @@ use crate::gameplay::movement::*;
 use crate::gameplay::player::*;
 use crate::gameplay::projectile::*;
 use crate::persistent::Score;
-use crate::state::{AppState, ON_EXIT_GAMEPLAY};
+use crate::state::{AppState, ON_ENTER_GAMEPLAY, ON_EXIT_GAMEPLAY};
 
-const ENEMY_SPEED: f32 = 70.0;
 const ENEMY_THRESHOLD: f32 = 64.0;
-const ENEMY_MAX_COUNT: usize = 64;
 
 pub struct EnemyPlugin;
 
@@ -75,8 +73,9 @@ fn spawn_enemy(
     player_transform_q: Query<&Transform, With<Player>>,
     enemy_q: Query<&Enemy>,
     mut rng: ResMut<GlobalEntropy<WyRand>>,
+    difficulty: Res<EnemyDifficulty>,
 ) {
-    let enemies_to_spawn = ENEMY_MAX_COUNT - enemy_q.iter().count();
+    let enemies_to_spawn = difficulty.get_enemy_max_count() - enemy_q.iter().count();
     let player_transform = match player_transform_q.get_single() {
         Ok(player) => player,
         Err(_) => return,
@@ -90,7 +89,8 @@ fn spawn_enemy(
 
         let radius = rng.next_u32() as f32 / u32::MAX as f32 * 2.0 * std::f32::consts::PI;
         let distance =
-            rng.next_u32() as f32 / u32::MAX as f32 * ENEMY_SPEED * 15.0 + ENEMY_SPEED * 15.0;
+            rng.next_u32() as f32 / u32::MAX as f32 * difficulty.get_enemy_speed() * 15.0
+                + difficulty.get_enemy_speed() * 15.0;
 
         commands.spawn((
             Enemy::default(),
@@ -115,7 +115,10 @@ fn spawn_enemy(
             animation_indices,
             AnimationTimer(Timer::from_seconds(0.25, TimerMode::Repeating)),
             MovingObjectBundle {
-                velocity: Velocity::from_vec3(Vec3::new(0.0, 0.0, 0.0), ENEMY_SPEED),
+                velocity: Velocity::from_vec3(
+                    Vec3::new(0.0, 0.0, 0.0),
+                    difficulty.get_enemy_speed(),
+                ),
             },
         ));
     }
@@ -243,25 +246,62 @@ fn update_animation(mut enemy_q: Query<(&mut Enemy, &Velocity, &mut AnimationInd
     }
 }
 
+fn increase_difficulty(mut difficulty: ResMut<EnemyDifficulty>, time: Res<Time>) {
+    difficulty.enemy_speed = (difficulty.enemy_speed + time.delta_seconds() * 0.2).min(150.0);
+    difficulty.enemy_max_count = (difficulty.enemy_max_count + time.delta_seconds()).min(100.0);
+}
+
+fn reset_difficulty(mut difficulty: ResMut<EnemyDifficulty>) {
+    *difficulty = EnemyDifficulty::default();
+}
+
 fn despawn_enemy(mut commands: Commands, enemy_q: Query<Entity, With<Enemy>>) {
     for enemy_entity in enemy_q.iter() {
         commands.entity(enemy_entity).despawn_recursive();
     }
 }
 
+#[derive(Resource, Debug)]
+pub struct EnemyDifficulty {
+    enemy_speed: f32,
+    enemy_max_count: f32,
+}
+
+impl Default for EnemyDifficulty {
+    fn default() -> Self {
+        Self {
+            enemy_speed: 60.0,
+            enemy_max_count: 32.0,
+        }
+    }
+}
+
+impl EnemyDifficulty {
+    fn get_enemy_speed(&self) -> f32 {
+        self.enemy_speed
+    }
+
+    fn get_enemy_max_count(&self) -> usize {
+        self.enemy_max_count as usize
+    }
+}
+
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (
-                spawn_enemy,
-                update_position,
-                enemy_attack,
-                update_animation,
-                projectile_hit_enemy,
+        app.insert_resource(EnemyDifficulty::default())
+            .add_systems(ON_ENTER_GAMEPLAY, reset_difficulty)
+            .add_systems(
+                Update,
+                (
+                    spawn_enemy,
+                    update_position,
+                    enemy_attack,
+                    update_animation,
+                    projectile_hit_enemy,
+                    increase_difficulty,
+                )
+                    .run_if(in_state(AppState::InGame)),
             )
-                .run_if(in_state(AppState::InGame)),
-        )
-        .add_systems(ON_EXIT_GAMEPLAY, despawn_enemy);
+            .add_systems(ON_EXIT_GAMEPLAY, despawn_enemy);
     }
 }
