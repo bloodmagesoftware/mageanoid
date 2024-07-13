@@ -59,13 +59,6 @@ jobs:
           name: linux
           retention-days: 1
 
-      - name: Upload executable to artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          path: linux/${{ env.binary }}
-          name: linux-executable
-          retention-days: 1
-
       - name: Upload binaries to release
         if: ${{ env.add_binaries_to_github_release == 'true' }}
         uses: svenstaro/upload-release-action@v2
@@ -110,13 +103,6 @@ jobs:
         with:
           path: ${{ env.binary }}.zip
           name: windows
-          retention-days: 1
-
-      - name: Upload executable to artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          path: windows/${{ env.binary }}.exe
-          name: windows-executable
           retention-days: 1
 
       - name: Upload binaries to release
@@ -166,13 +152,6 @@ jobs:
           name: macOS-intel
           retention-days: 1
 
-      - name: Upload executable to artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          path: target/x86_64-apple-darwin/release/${{ env.binary }}
-          name: mac-x86-executable
-          retention-days: 1
-
       - name: Upload binaries to release
         if: ${{ env.add_binaries_to_github_release == 'true' }}
         uses: svenstaro/upload-release-action@v2
@@ -218,13 +197,6 @@ jobs:
         with:
           path: ${{ env.binary }}-macOS-apple-silicon.dmg
           name: macOS-apple-silicon
-          retention-days: 1
-
-      - name: Upload executable to artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          path: target/aarch64-apple-darwin/release/${{ env.binary }}
-          name: mac-arm-executable
           retention-days: 1
 
       - name: Upload binaries to release
