@@ -2463,7 +2463,7 @@ dependencies = [
 
 [[package]]
 name = "mageanoid"
-version = "0.3.4"
+version = "1.0.0"
 dependencies = [
  "bevy",
  "bevy-persistent",
