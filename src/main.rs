@@ -41,7 +41,7 @@ fn main() {
                     title: "Mageanoid".into(),
                     name: Some("Mageanoid".into()),
                     present_mode: bevy_window::PresentMode::AutoVsync,
-                    mode: bevy_window::WindowMode::BorderlessFullscreen,
+                    // mode: bevy_window::WindowMode::BorderlessFullscreen,
                     fit_canvas_to_parent: true,
                     prevent_default_event_handling: false,
                     window_theme: Some(bevy_window::WindowTheme::Dark),

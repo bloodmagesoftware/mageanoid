@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 use bevy::audio::PlaybackMode;
 use bevy::prelude::*;
 #[cfg(feature = "storage")]
@@ -24,6 +23,7 @@ use bevy_prng::WyRand;
 use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
 
+use crate::ext::{IntoVec3, RandomAround};
 use crate::gameplay::anim::*;
 use crate::gameplay::health::*;
 use crate::gameplay::movement::*;
@@ -34,13 +34,18 @@ use crate::state::{AppState, ON_ENTER_GAMEPLAY, ON_EXIT_GAMEPLAY};
 
 const ENEMY_THRESHOLD: f32 = 64.0;
 
-pub struct EnemyPlugin;
-
 #[derive(Debug)]
 enum EnemyState {
     Hunting,
     ReadyBlade,
     SwingBlade,
+}
+
+#[derive(Debug)]
+enum EnemyTarget {
+    Player,
+    PlayerFuture,
+    Location(Vec2),
 }
 
 #[derive(Debug)]
@@ -54,6 +59,8 @@ pub struct Enemy {
     animation_state: EnemyState,
     face: Face,
     sword_hit_timer: Timer,
+    target_switch_timer: Timer,
+    target: EnemyTarget,
 }
 
 impl Default for Enemy {
@@ -61,7 +68,9 @@ impl Default for Enemy {
         Self {
             animation_state: EnemyState::Hunting,
             face: Face::Left,
-            sword_hit_timer: Timer::from_seconds(0.5, TimerMode::Repeating),
+            sword_hit_timer: Timer::from_seconds(0.3, TimerMode::Repeating),
+            target_switch_timer: Timer::from_seconds(6.0, TimerMode::Repeating),
+            target: EnemyTarget::Player,
         }
     }
 }
@@ -87,21 +96,16 @@ fn spawn_enemy(
         let texture_atlas_layout = texture_atlas_layouts.add(layout);
         let animation_indices = AnimationIndices::new(0, 0);
 
-        let radius = rng.next_u32() as f32 / u32::MAX as f32 * 2.0 * std::f32::consts::PI;
-        let distance =
-            rng.next_u32() as f32 / u32::MAX as f32 * difficulty.get_enemy_speed() * 15.0
-                + difficulty.get_enemy_speed() * 15.0;
-
         commands.spawn((
             Enemy::default(),
             Health::new(1.0),
             SpriteBundle {
                 texture,
                 transform: Transform {
-                    translation: Vec3::new(
-                        player_transform.translation.x + distance * radius.cos(),
-                        player_transform.translation.y + distance * radius.sin(),
-                        0.0,
+                    translation: player_transform.translation.random_around(
+                        &mut rng,
+                        difficulty.get_enemy_speed() * 15.0,
+                        difficulty.get_enemy_speed() * 30.0,
                     ),
                     scale: Vec3::splat(1.0),
                     ..default()
@@ -205,13 +209,48 @@ fn enemy_attack_fx(commands: &mut Commands, asset_server: &Res<AssetServer>) {
     });
 }
 
-fn update_position(
-    mut enemy_q: Query<(&Transform, &mut Velocity), With<Enemy>>,
-    player_transform_q: Query<&Transform, With<Player>>,
+fn switch_target(
+    mut enemy_q: Query<&mut Enemy>,
+    time: Res<Time>,
+    mut rng: ResMut<GlobalEntropy<WyRand>>,
+    player_transform_q: Query<&GlobalTransform, With<Player>>,
 ) {
-    if let Ok(player_transform) = player_transform_q.get_single() {
-        for (enemy_transform, mut enemy_vel) in enemy_q.iter_mut() {
-            let direction = player_transform.translation - enemy_transform.translation;
+    let player_transform = match player_transform_q.get_single() {
+        Ok(player_transform) => player_transform,
+        Err(_) => return,
+    };
+    for mut enemy in enemy_q.iter_mut() {
+        enemy.target_switch_timer.tick(time.delta());
+        if enemy.target_switch_timer.just_finished() {
+            let target = match rng.next_u32() % 3 {
+                0 => EnemyTarget::Player,
+                1 => EnemyTarget::PlayerFuture,
+                _ => EnemyTarget::Location(
+                    player_transform
+                        .translation()
+                        .random_around(&mut rng, 128.0, 512.0)
+                        .xy(),
+                ),
+            };
+            enemy.target = target;
+        }
+    }
+}
+
+fn update_position(
+    mut enemy_q: Query<(&Enemy, &Transform, &mut Velocity), Without<Player>>,
+    player_q: Query<(&Transform, &Velocity), With<Player>>,
+) {
+    if let Ok((player_transform, player_velocity)) = player_q.get_single() {
+        for (enemy, enemy_transform, mut enemy_vel) in enemy_q.iter_mut() {
+            let target_pos = match enemy.target {
+                EnemyTarget::Player => player_transform.translation,
+                EnemyTarget::PlayerFuture => {
+                    player_transform.translation + player_velocity.direction * 128.0
+                }
+                EnemyTarget::Location(pos) => pos.xyz(),
+            };
+            let direction = target_pos - enemy_transform.translation;
             if direction.length() >= ENEMY_THRESHOLD {
                 enemy_vel.direction = direction.normalize();
             } else {
@@ -286,6 +325,8 @@ impl EnemyDifficulty {
     }
 }
 
+pub struct EnemyPlugin;
+
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(EnemyDifficulty::default())
@@ -294,6 +335,7 @@ impl Plugin for EnemyPlugin {
                 Update,
                 (
                     spawn_enemy,
+                    switch_target,
                     update_position,
                     enemy_attack,
                     update_animation,
