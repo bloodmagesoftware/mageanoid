@@ -25,6 +25,7 @@ mod ext;
 mod gameplay;
 mod ldtk;
 mod mainmenu;
+mod music;
 mod persistent;
 mod state;
 mod style;
@@ -54,6 +55,7 @@ fn main() {
     .add_plugins(gameplay::GameplayPlugin)
     .add_plugins(ldtk::LdtkPlugin)
     .add_plugins(mainmenu::MainMenuPlugin)
+    .add_plugins(music::MusicPlugin)
     .add_plugins(persistent::PersistentPlugin)
     .add_plugins(state::AppStatePlugin)
     .add_plugins(style::StylePlugin);

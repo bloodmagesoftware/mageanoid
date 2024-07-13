@@ -54,7 +54,7 @@ impl ProjectileBundle {
                 sprite: SpriteBundle {
                     texture,
                     transform: Transform {
-                        translation: position + (direction * 64.0).xyz(),
+                        translation: position + (direction * 32.0).xyz(),
                         rotation: Quat::IDENTITY,
                         scale: Vec3::ONE,
                     },
@@ -68,7 +68,7 @@ impl ProjectileBundle {
                 timer: AnimationTimer(Timer::from_seconds(0.125, TimerMode::Repeating)),
             },
             moving_object: MovingObjectBundle {
-                velocity: Velocity::from_vec2(direction, 512.0),
+                velocity: Velocity::from_vec2(direction, 420.0),
             },
         };
         let attack_sound = AudioBundle {
