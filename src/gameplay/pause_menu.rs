@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 use bevy::prelude::*;
 
 use crate::state::AppState;
@@ -104,33 +103,39 @@ fn toggle_pause(
             return;
         }
 
-        if buttons.any_just_pressed([
-            GamepadButton {
-                gamepad,
-                button_type: GamepadButtonType::South,
-            },
-            GamepadButton {
-                gamepad,
-                button_type: GamepadButtonType::East,
-            },
-        ]) {
-            next_state.set(AppState::MainMenu);
-            return;
-        }
-
-        if buttons.any_just_pressed([
-            GamepadButton {
-                gamepad,
-                button_type: GamepadButtonType::West,
-            },
-            GamepadButton {
-                gamepad,
-                button_type: GamepadButtonType::North,
-            },
-        ]) {
-            next_state.set(AppState::InGame);
-            return;
-        }
+        match state.get() {
+            AppState::Paused => {
+                if buttons.any_just_pressed([
+                    GamepadButton {
+                        gamepad,
+                        button_type: GamepadButtonType::South,
+                    },
+                    GamepadButton {
+                        gamepad,
+                        button_type: GamepadButtonType::East,
+                    },
+                ]) {
+                    next_state.set(AppState::MainMenu);
+                    return;
+                }
+            }
+            AppState::InGame => {
+                if buttons.any_just_pressed([
+                    GamepadButton {
+                        gamepad,
+                        button_type: GamepadButtonType::West,
+                    },
+                    GamepadButton {
+                        gamepad,
+                        button_type: GamepadButtonType::North,
+                    },
+                ]) {
+                    next_state.set(AppState::InGame);
+                    return;
+                }
+            }
+            _ => {}
+        };
     }
 }
 
