@@ -86,6 +86,16 @@ pub fn v_space(height: f32) -> NodeBundle {
     }
 }
 
+pub fn h_space(width: f32) -> NodeBundle {
+    NodeBundle {
+        style: Style {
+            width: Val::Vw(width),
+            ..default()
+        },
+        ..default()
+    }
+}
+
 pub fn text_button(content: impl Into<String>, id: u8) -> (InteractiveButtonBundle, TextBundle) {
     let button = InteractiveButtonBundle {
         button: ButtonBundle {
@@ -113,6 +123,32 @@ pub fn text_button(content: impl Into<String>, id: u8) -> (InteractiveButtonBund
     );
 
     (button, button_text)
+}
+
+pub fn vbox() -> NodeBundle {
+    NodeBundle {
+        style: Style {
+            display: Display::Flex,
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        ..default()
+    }
+}
+
+pub fn hbox() -> NodeBundle {
+    NodeBundle {
+        style: Style {
+            display: Display::Flex,
+            flex_direction: FlexDirection::Row,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        ..default()
+    }
 }
 
 pub struct StylePlugin;

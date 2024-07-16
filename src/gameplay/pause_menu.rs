@@ -17,13 +17,19 @@
  */
 use bevy::prelude::*;
 
+use crate::controls::ControlType;
 use crate::state::AppState;
-use crate::style::{ButtonId, text_button, text_title, v_space};
+use crate::style::{ButtonId, text, text_button, text_title, v_space};
 
 #[derive(Component, Debug)]
 struct PauseMenu;
 
-fn spawn_pause_menu(mut commands: Commands) {
+fn spawn_pause_menu(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    #[cfg(feature = "storage")] score: Res<bevy_persistent::Persistent<Score>>,
+    #[cfg(not(feature = "storage"))] score: Res<crate::persistent::Score>,
+) {
     let container = NodeBundle {
         style: Style {
             width: Val::Percent(100.0),
@@ -44,13 +50,69 @@ fn spawn_pause_menu(mut commands: Commands) {
         .spawn((PauseMenu, container))
         .with_children(|parent| {
             parent.spawn(text_title("Mageanoid"));
+            parent.spawn(text(format!("Score: {}", score.current_score)));
             parent.spawn(v_space(20.0));
-            parent.spawn(resume_btn).with_children(|parent| {
-                parent.spawn(resume_btn_text);
-            });
-            parent.spawn(main_menu_btn).with_children(|parent| {
-                parent.spawn(main_menu_btn_text);
-            });
+
+            parent
+                .spawn(NodeBundle {
+                    style: Style {
+                        display: Display::Flex,
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
+                        flex_direction: FlexDirection::Row,
+                        ..default()
+                    },
+                    ..default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(resume_btn).with_children(|parent| {
+                        parent.spawn(resume_btn_text);
+                    });
+                    parent.spawn((
+                        ControlType::Gamepad,
+                        ImageBundle {
+                            image: asset_server.load("ui/face_north.png").into(),
+                            style: Style {
+                                width: Val::VMin(6.4),
+                                height: Val::VMin(6.4),
+                                ..default()
+                            },
+                            ..default()
+                        },
+                    ));
+                });
+
+            parent.spawn(v_space(5.0));
+
+            parent
+                .spawn(NodeBundle {
+                    style: Style {
+                        display: Display::Flex,
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
+                        flex_direction: FlexDirection::Row,
+                        ..default()
+                    },
+                    ..default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(main_menu_btn).with_children(|parent| {
+                        parent.spawn(main_menu_btn_text);
+                    });
+
+                    parent.spawn((
+                        ControlType::Gamepad,
+                        ImageBundle {
+                            image: asset_server.load("ui/face_south.png").into(),
+                            style: Style {
+                                width: Val::VMin(6.4),
+                                height: Val::VMin(6.4),
+                                ..default()
+                            },
+                            ..default()
+                        },
+                    ));
+                });
         });
 }
 
@@ -79,7 +141,7 @@ fn toggle_pause(
     state: Res<State<AppState>>,
     mut next_state: ResMut<NextState<AppState>>,
     keys: Res<ButtonInput<KeyCode>>,
-    gamepad_q: Res<Gamepads>,
+    gamepad: Res<Gamepads>,
     buttons: Res<ButtonInput<GamepadButton>>,
 ) {
     if keys.just_pressed(KeyCode::Escape) {
@@ -90,7 +152,7 @@ fn toggle_pause(
         return;
     }
 
-    for gamepad in gamepad_q.iter() {
+    for gamepad in gamepad.iter() {
         let start_button = GamepadButton {
             gamepad,
             button_type: GamepadButtonType::Start,
@@ -103,38 +165,22 @@ fn toggle_pause(
             return;
         }
 
-        match state.get() {
-            AppState::Paused => {
-                if buttons.any_just_pressed([
-                    GamepadButton {
-                        gamepad,
-                        button_type: GamepadButtonType::South,
-                    },
-                    GamepadButton {
-                        gamepad,
-                        button_type: GamepadButtonType::East,
-                    },
-                ]) {
-                    next_state.set(AppState::MainMenu);
-                    return;
-                }
+        if state.get() == &AppState::Paused {
+            if buttons.just_pressed(GamepadButton {
+                gamepad,
+                button_type: GamepadButtonType::South,
+            }) {
+                next_state.set(AppState::MainMenu);
+                return;
             }
-            AppState::InGame => {
-                if buttons.any_just_pressed([
-                    GamepadButton {
-                        gamepad,
-                        button_type: GamepadButtonType::West,
-                    },
-                    GamepadButton {
-                        gamepad,
-                        button_type: GamepadButtonType::North,
-                    },
-                ]) {
-                    next_state.set(AppState::InGame);
-                    return;
-                }
+
+            if buttons.just_pressed(GamepadButton {
+                gamepad,
+                button_type: GamepadButtonType::North,
+            }) {
+                next_state.set(AppState::InGame);
+                return;
             }
-            _ => {}
         };
     }
 }

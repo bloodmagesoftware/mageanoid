@@ -20,7 +20,7 @@ extern crate bevy;
 
 use bevy::prelude::*;
 
-use crate::persistent::Score;
+use crate::controls::ControlType;
 use crate::state::AppState;
 use crate::style::*;
 
@@ -31,8 +31,9 @@ struct MainMenu;
 
 fn spawn_ui(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     #[cfg(feature = "storage")] score: Res<bevy_persistent::Persistent<Score>>,
-    #[cfg(not(feature = "storage"))] score: Res<Score>,
+    #[cfg(not(feature = "storage"))] score: Res<crate::persistent::Score>,
 ) {
     let container = NodeBundle {
         style: Style {
@@ -56,11 +57,127 @@ fn spawn_ui(
             parent.spawn(text_title("Mageanoid"));
             parent.spawn(text(format!("High Score: {}", score.high_score)));
             parent.spawn(v_space(20.0));
-            parent.spawn(start_btn).with_children(|parent| {
-                parent.spawn(start_btn_text);
-            });
-            parent.spawn(exit_btn).with_children(|parent| {
-                parent.spawn(exit_btn_text);
+
+            parent
+                .spawn(NodeBundle {
+                    style: Style {
+                        display: Display::Flex,
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
+                        flex_direction: FlexDirection::Row,
+                        ..default()
+                    },
+                    ..default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(start_btn).with_children(|parent| {
+                        parent.spawn(start_btn_text);
+                    });
+
+                    parent.spawn((
+                        ControlType::Gamepad,
+                        ImageBundle {
+                            image: asset_server.load("ui/face_north.png").into(),
+                            style: Style {
+                                width: Val::VMin(6.4),
+                                height: Val::VMin(6.4),
+                                ..default()
+                            },
+                            ..default()
+                        },
+                    ));
+                });
+
+            parent.spawn(v_space(5.0));
+
+            parent
+                .spawn(NodeBundle {
+                    style: Style {
+                        display: Display::Flex,
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
+                        flex_direction: FlexDirection::Row,
+                        ..default()
+                    },
+                    ..default()
+                })
+                .with_children(|parent| {
+                    parent.spawn(exit_btn).with_children(|parent| {
+                        parent.spawn(exit_btn_text);
+                    });
+
+                    parent.spawn((
+                        ControlType::Gamepad,
+                        ImageBundle {
+                            image: asset_server.load("ui/face_south.png").into(),
+                            style: Style {
+                                width: Val::VMin(6.4),
+                                height: Val::VMin(6.4),
+                                ..default()
+                            },
+                            ..default()
+                        },
+                    ));
+                });
+
+            parent.spawn(v_space(5.0));
+
+            parent.spawn(hbox()).with_children(|parent| {
+                parent.spawn((
+                    ControlType::Gamepad,
+                    ImageBundle {
+                        image: asset_server.load("ui/left_stick.png").into(),
+                        style: Style {
+                            width: Val::VMin(6.4),
+                            height: Val::VMin(6.4),
+                            ..default()
+                        },
+                        ..default()
+                    },
+                ));
+                parent.spawn((
+                    ControlType::Keyboard,
+                    ImageBundle {
+                        image: asset_server.load("ui/wasd.png").into(),
+                        style: Style {
+                            width: Val::VMin(6.4 * 3.0),
+                            height: Val::VMin(6.4 * 2.0),
+                            ..default()
+                        },
+                        ..default()
+                    },
+                ));
+                parent.spawn(h_space(1.0));
+                parent.spawn(text("Move"));
+
+                parent.spawn(h_space(5.0));
+
+                parent.spawn((
+                    ControlType::Gamepad,
+                    ImageBundle {
+                        image: asset_server.load("ui/right_stick.png").into(),
+                        style: Style {
+                            width: Val::VMin(6.4),
+                            height: Val::VMin(6.4),
+                            ..default()
+                        },
+                        ..default()
+                    },
+                ));
+                parent.spawn((
+                    ControlType::Keyboard,
+                    ImageBundle {
+                        image: asset_server.load("ui/lmb.png").into(),
+                        style: Style {
+                            width: Val::VMin(6.4),
+                            height: Val::VMin(6.4),
+                            ..default()
+                        },
+                        ..default()
+                    },
+                ));
+                parent.spawn(h_space(1.0));
+                parent.spawn(text("Shoot"));
             });
         });
 }
@@ -85,11 +202,11 @@ fn on_button_click(
 
 fn gamepad_input(
     mut next_state: ResMut<NextState<AppState>>,
-    gamepad_q: Res<Gamepads>,
+    gamepad: Res<Gamepads>,
     buttons: Res<ButtonInput<GamepadButton>>,
     mut app_exit_events: ResMut<Events<AppExit>>,
 ) {
-    for gamepad in gamepad_q.iter() {
+    for gamepad in gamepad.iter() {
         if buttons.any_just_pressed([
             GamepadButton {
                 gamepad,
