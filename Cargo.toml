@@ -1,11 +1,11 @@
 [package]
 name = "mageanoid"
-version = "1.1.1"
+version = "1.2.0"
 edition = "2021"
 license-file = "LICENSE"
 
 [features]
-storage = []
+storage = ["bevy-persistent/all"]
 
 [dependencies]
 bevy = { version = "0.14.0", features = ["wav"] }
