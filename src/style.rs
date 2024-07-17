@@ -17,6 +17,7 @@
  */
 
 use bevy::prelude::*;
+use bevy_ui::FocusPolicy;
 
 pub const NORMAL_BUTTON: Color = Color::srgb(0.15, 0.15, 0.15);
 pub const HOVERED_BUTTON: Color = Color::srgb(0.25, 0.25, 0.25);
@@ -80,6 +81,7 @@ pub fn v_space(height: f32) -> NodeBundle {
     NodeBundle {
         style: Style {
             height: Val::Vh(height),
+            min_height: Val::Px(16.0),
             ..default()
         },
         ..default()
@@ -90,6 +92,7 @@ pub fn h_space(width: f32) -> NodeBundle {
     NodeBundle {
         style: Style {
             width: Val::Vw(width),
+            min_width: Val::Px(16.0),
             ..default()
         },
         ..default()
@@ -99,7 +102,6 @@ pub fn h_space(width: f32) -> NodeBundle {
 pub fn text_button(content: impl Into<String>, id: u8) -> (InteractiveButtonBundle, TextBundle) {
     let button = InteractiveButtonBundle {
         button: ButtonBundle {
-            background_color: NORMAL_BUTTON.into(),
             style: Style {
                 width: Val::Px(256.0),
                 height: Val::Px(64.0),
@@ -108,6 +110,7 @@ pub fn text_button(content: impl Into<String>, id: u8) -> (InteractiveButtonBund
                 align_items: AlignItems::Center,
                 ..default()
             },
+            background_color: NORMAL_BUTTON.into(),
             ..default()
         },
         id: ButtonId { id },
@@ -125,30 +128,47 @@ pub fn text_button(content: impl Into<String>, id: u8) -> (InteractiveButtonBund
     (button, button_text)
 }
 
-pub fn vbox() -> NodeBundle {
-    NodeBundle {
-        style: Style {
-            display: Display::Flex,
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
+pub fn wrapper() -> impl Bundle {
+    (
+        Node::default(),
+        Style {
+            display: Display::Block,
             ..default()
         },
-        ..default()
-    }
+        BackgroundColor::default(),
+        BorderColor::default(),
+        BorderRadius::default(),
+        FocusPolicy::default(),
+        Transform::default(),
+        GlobalTransform::default(),
+        Visibility::default(),
+        ViewVisibility::default(),
+        InheritedVisibility::default(),
+        ZIndex::default(),
+    )
 }
 
-pub fn hbox() -> NodeBundle {
-    NodeBundle {
-        style: Style {
+pub fn hbox() -> impl Bundle {
+    (
+        Node::default(),
+        Style {
             display: Display::Flex,
             flex_direction: FlexDirection::Row,
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
             ..default()
         },
-        ..default()
-    }
+        BackgroundColor::default(),
+        BorderColor::default(),
+        BorderRadius::default(),
+        FocusPolicy::default(),
+        Transform::default(),
+        GlobalTransform::default(),
+        Visibility::default(),
+        ViewVisibility::default(),
+        InheritedVisibility::default(),
+        ZIndex::default(),
+    )
 }
 
 pub struct StylePlugin;

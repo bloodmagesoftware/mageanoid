@@ -86,9 +86,10 @@ impl ProjectileBundle {
             },
         };
 
-        commands.spawn(projectile);
-        commands.spawn(attack_sound);
-        commands.spawn(thunder_sound);
+        commands.spawn(projectile).with_children(|parent| {
+            parent.spawn(attack_sound);
+            parent.spawn(thunder_sound);
+        });
     }
 }
 
@@ -98,7 +99,7 @@ fn projectile_out_of_bounds(
 ) {
     for (projectile_entity, view_visibility) in projectile_q.iter() {
         if !view_visibility.get() {
-            commands.entity(projectile_entity).despawn_recursive();
+            commands.entity(projectile_entity).despawn();
         }
     }
 }

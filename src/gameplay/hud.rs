@@ -17,8 +17,6 @@
  */
 
 use bevy::prelude::*;
-#[cfg(feature = "storage")]
-use bevy_persistent::Persistent;
 
 use crate::gameplay::health::Health;
 use crate::gameplay::player::Player;
@@ -115,7 +113,7 @@ fn update_health_bar(
 
 fn update_score_text(
     mut query: Query<&mut Text, With<ScoreText>>,
-    #[cfg(feature = "storage")] score: Res<Persistent<Score>>,
+    #[cfg(feature = "storage")] score: Res<bevy_persistent::Persistent<Score>>,
     #[cfg(not(feature = "storage"))] score: Res<Score>,
 ) {
     for mut text in query.iter_mut() {

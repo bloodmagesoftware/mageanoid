@@ -21,8 +21,10 @@ extern crate bevy;
 use bevy::prelude::*;
 
 use crate::controls::ControlType;
+use crate::persistent::Mixer;
 use crate::state::AppState;
 use crate::style::*;
+use crate::volume::volume_control_ui;
 
 pub struct MainMenuPlugin;
 
@@ -32,8 +34,10 @@ struct MainMenu;
 fn spawn_ui(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    #[cfg(feature = "storage")] score: Res<bevy_persistent::Persistent<Score>>,
+    #[cfg(feature = "storage")] score: Res<bevy_persistent::Persistent<crate::persistent::Score>>,
     #[cfg(not(feature = "storage"))] score: Res<crate::persistent::Score>,
+    #[cfg(not(feature = "storage"))] mixer: Res<Mixer>,
+    #[cfg(feature = "storage")] mixer: Res<bevy_persistent::Persistent<Mixer>>,
 ) {
     let container = NodeBundle {
         style: Style {
@@ -179,6 +183,8 @@ fn spawn_ui(
                 parent.spawn(h_space(1.0));
                 parent.spawn(text("Shoot"));
             });
+
+            volume_control_ui(asset_server, parent, mixer);
         });
 }
 

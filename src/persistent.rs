@@ -38,26 +38,14 @@ impl Score {
     }
 }
 
-fn setup(mut commands: Commands) {
-    #[cfg(feature = "storage")]
-    {
-        if let Some(config_dir) = dirs::config_dir() {
-            let resource = bevy_persistent::Persistent::<Score>::builder()
-                .name("score")
-                .format(bevy_persistent::StorageFormat::Bincode)
-                .path(config_dir.join("mageanoid").join("score"))
-                .default(Score::default())
-                .revertible(true)
-                .revert_to_default_on_deserialization_errors(true)
-                .build()
-                .expect("failed to initialize score resource");
+#[derive(Resource, Serialize, Deserialize, Debug)]
+pub struct Mixer {
+    pub master: f32,
+}
 
-            commands.insert_resource(resource);
-        }
-    }
-    #[cfg(not(feature = "storage"))]
-    {
-        commands.insert_resource(Score::default());
+impl Default for Mixer {
+    fn default() -> Self {
+        Self { master: 1.0 }
     }
 }
 
@@ -73,6 +61,7 @@ fn reset_score(mut score: ResMut<Score>) {
 
 #[cfg(feature = "storage")]
 fn persist(score: Res<bevy_persistent::Persistent<Score>>) {
+    info!("persist");
     score.persist().expect("failed to persist score");
 }
 
@@ -82,15 +71,42 @@ impl Plugin for PersistentPlugin {
     fn build(&self, app: &mut App) {
         #[cfg(feature = "storage")]
         {
-            app.add_systems(PreStartup, setup)
-                .add_systems(ON_ENTER_GAMEPLAY, reset_score)
+            if let Some(config_dir) = dirs::config_dir() {
+                let score_resource = bevy_persistent::Persistent::<Score>::builder()
+                    .name("score")
+                    .format(bevy_persistent::StorageFormat::Bincode)
+                    .path(config_dir.join("mageanoid").join("score"))
+                    .default(Score::default())
+                    .revertible(true)
+                    .revert_to_default_on_deserialization_errors(true)
+                    .build()
+                    .expect("failed to initialize score resource");
+
+                app.insert_resource(score_resource);
+
+                let mixer_resource = bevy_persistent::Persistent::<Mixer>::builder()
+                    .name("mixer")
+                    .format(bevy_persistent::StorageFormat::Bincode)
+                    .path(config_dir.join("mageanoid").join("mixer"))
+                    .default(Mixer::default())
+                    .revertible(true)
+                    .revert_to_default_on_deserialization_errors(true)
+                    .build()
+                    .expect("failed to initialize mixer resource");
+
+                app.insert_resource(mixer_resource);
+            }
+
+            app.add_systems(ON_ENTER_GAMEPLAY, reset_score)
                 .add_systems(OnExit(AppState::InGame), persist);
         }
 
         #[cfg(not(feature = "storage"))]
         {
-            app.add_systems(PreStartup, setup)
-                .add_systems(ON_ENTER_GAMEPLAY, reset_score);
+            app.insert_resource(Score::default());
+            app.insert_resource(Mixer::default());
+
+            app.add_systems(ON_ENTER_GAMEPLAY, reset_score);
         }
     }
 }

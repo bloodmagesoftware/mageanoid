@@ -18,6 +18,7 @@
 use bevy::prelude::*;
 
 use crate::controls::ControlType;
+use crate::persistent::Score;
 use crate::state::AppState;
 use crate::style::{ButtonId, text, text_button, text_title, v_space};
 
@@ -28,7 +29,7 @@ fn spawn_pause_menu(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     #[cfg(feature = "storage")] score: Res<bevy_persistent::Persistent<Score>>,
-    #[cfg(not(feature = "storage"))] score: Res<crate::persistent::Score>,
+    #[cfg(not(feature = "storage"))] score: Res<Score>,
 ) {
     let container = NodeBundle {
         style: Style {

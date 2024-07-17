@@ -34,7 +34,7 @@ impl Default for CameraLag {
     }
 }
 
-fn add_camera(mut commands: Commands) {
+fn spawn_camera(mut commands: Commands) {
     let mut my_2d_camera_bundle = Camera2dBundle::default();
     my_2d_camera_bundle.projection.scaling_mode = ScalingMode::FixedVertical(750.0);
     my_2d_camera_bundle.transform = Transform::from_xyz(0.0, 0.0, 0.0);
@@ -70,7 +70,7 @@ pub struct CamPlugin;
 
 impl Plugin for CamPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, add_camera)
+        app.add_systems(Startup, spawn_camera)
             .add_systems(Update, follow_player.run_if(in_state(AppState::InGame)));
     }
 }

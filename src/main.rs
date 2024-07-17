@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 use bevy::prelude::*;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::EntropyPlugin;
@@ -30,6 +29,7 @@ mod music;
 mod persistent;
 mod state;
 mod style;
+mod volume;
 
 fn main() {
     let mut app = App::new();
@@ -60,7 +60,8 @@ fn main() {
     .add_plugins(music::MusicPlugin)
     .add_plugins(persistent::PersistentPlugin)
     .add_plugins(state::AppStatePlugin)
-    .add_plugins(style::StylePlugin);
+    .add_plugins(style::StylePlugin)
+    .add_plugins(volume::VolumePlugin);
 
     app.run();
 }
