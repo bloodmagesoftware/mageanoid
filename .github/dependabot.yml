@@ -1,6 +1,13 @@
 version: 2
 updates:
-  - package-ecosystem: 'cargo'
-    directory: '/'
+  - package-ecosystem: "cargo"
+    directory: "/"
     schedule:
-      interval: 'weekly'
+      interval: "weekly"
+    groups:
+      actions-deps:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
