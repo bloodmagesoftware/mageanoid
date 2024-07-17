@@ -9,6 +9,7 @@ Music by [Fatal Exit](https://soundcloud.com/fatalexit)
 
 ## Play
 
+- [Steam](https://store.steampowered.com/app/3104840/Mageanoid)
 - [itch.io](https://bloodmagesoftware.itch.io/mageanoid)
 - [In your browser](https://bloodmagesoftware.github.io/mageanoid/)
 
