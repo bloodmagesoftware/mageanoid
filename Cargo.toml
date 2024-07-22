@@ -14,7 +14,7 @@ bevy_prng = { version = "0.7.1", features = ["wyrand"] }
 bevy_rand = { version = "0.7.1", features = ["wyrand"] }
 bevy_ui = { version = "0.14.0" }
 rand_core = "0.6.4"
-wyrand = "0.2.0"
+wyrand = "0.2.1"
 dirs = "5.0.1"
 serde = "1.0.204"
 bevy_window = "0.14.0"
