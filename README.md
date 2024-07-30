@@ -7,6 +7,11 @@ _GNU Affero General Public License_
 
 Music by [Fatal Exit](https://soundcloud.com/fatalexit)
 
+## Build from source
+
+- You need [Rust](https://rustup.rs/)
+- run `cargo run` or `cargo build` and add `--features "storage"` if you want persistent storage for score and settings
+
 ## Play
 
 - [Steam](https://store.steampowered.com/app/3104840/Mageanoid)
