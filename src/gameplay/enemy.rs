@@ -17,8 +17,6 @@
  */
 use bevy::audio::PlaybackMode;
 use bevy::prelude::*;
-#[cfg(feature = "storage")]
-use bevy_persistent::Persistent;
 use bevy_prng::WyRand;
 use bevy_rand::prelude::GlobalEntropy;
 use rand_core::RngCore;
@@ -29,7 +27,7 @@ use crate::gameplay::health::*;
 use crate::gameplay::movement::*;
 use crate::gameplay::player::*;
 use crate::gameplay::projectile::*;
-use crate::persistent::Score;
+use crate::persistent::{Mixer, Score};
 use crate::state::{AppState, ON_ENTER_GAMEPLAY, ON_EXIT_GAMEPLAY};
 
 const ENEMY_THRESHOLD: f32 = 64.0;
@@ -135,6 +133,8 @@ fn enemy_attack(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut next_state: ResMut<NextState<AppState>>,
+    #[cfg(not(feature = "storage"))] mixer: Res<Mixer>,
+    #[cfg(feature = "storage")] mixer: Res<bevy_persistent::Persistent<Mixer>>,
 ) {
     for (mut enemy, enemy_transform) in enemy_q.iter_mut() {
         enemy.sword_hit_timer.tick(time.delta());
@@ -148,13 +148,14 @@ fn enemy_attack(
                     EnemyState::Hunting => EnemyState::ReadyBlade,
                     EnemyState::SwingBlade => EnemyState::ReadyBlade,
                     EnemyState::ReadyBlade => {
-                        enemy_attack_fx(&mut commands, &asset_server);
+                        enemy_attack_fx(&mut commands, &asset_server, mixer);
                         if player_health.damage(1.0) {
                             next_state.set(AppState::MainMenu);
                         }
                         EnemyState::SwingBlade
                     }
                 };
+                return;
             } else {
                 enemy.animation_state = EnemyState::Hunting;
             }
@@ -167,8 +168,10 @@ fn projectile_hit_enemy(
     mut enemy_q: Query<(Entity, &Transform, &mut Health), With<Enemy>>,
     projectile_q: Query<(Entity, &Transform), With<Projectile>>,
     asset_server: Res<AssetServer>,
-    #[cfg(feature = "storage")] mut score: ResMut<Persistent<Score>>,
+    #[cfg(feature = "storage")] mut score: ResMut<bevy_persistent::Persistent<Score>>,
     #[cfg(not(feature = "storage"))] mut score: ResMut<Score>,
+    #[cfg(not(feature = "storage"))] mixer: Res<Mixer>,
+    #[cfg(feature = "storage")] mixer: Res<bevy_persistent::Persistent<Mixer>>,
 ) {
     for (projectile_entity, projectile_transform) in projectile_q.iter() {
         for (enemy_entity, enemy_transform, mut enemy_health) in enemy_q.iter_mut() {
@@ -181,7 +184,7 @@ fn projectile_hit_enemy(
                     commands.entity(enemy_entity).despawn_recursive();
                     score.increase(1);
                 }
-                enemy_hit_fx(&mut commands, &asset_server);
+                enemy_hit_fx(&mut commands, &asset_server, mixer);
                 commands.entity(projectile_entity).despawn_recursive();
                 return;
             }
@@ -189,21 +192,33 @@ fn projectile_hit_enemy(
     }
 }
 
-fn enemy_hit_fx(commands: &mut Commands, asset_server: &Res<AssetServer>) {
+fn enemy_hit_fx(
+    commands: &mut Commands,
+    asset_server: &Res<AssetServer>,
+    #[cfg(not(feature = "storage"))] mixer: Res<Mixer>,
+    #[cfg(feature = "storage")] mixer: Res<bevy_persistent::Persistent<Mixer>>,
+) {
     commands.spawn(AudioBundle {
         source: asset_server.load("sounds/69_Enemy_death_01.wav"),
         settings: PlaybackSettings {
             mode: PlaybackMode::Despawn,
+            volume: mixer.as_volume(),
             ..default()
         },
     });
 }
 
-fn enemy_attack_fx(commands: &mut Commands, asset_server: &Res<AssetServer>) {
+fn enemy_attack_fx(
+    commands: &mut Commands,
+    asset_server: &Res<AssetServer>,
+    #[cfg(not(feature = "storage"))] mixer: Res<Mixer>,
+    #[cfg(feature = "storage")] mixer: Res<bevy_persistent::Persistent<Mixer>>,
+) {
     commands.spawn(AudioBundle {
         source: asset_server.load("sounds/56_Attack_03.wav"),
         settings: PlaybackSettings {
             mode: PlaybackMode::Despawn,
+            volume: mixer.as_volume(),
             ..default()
         },
     });

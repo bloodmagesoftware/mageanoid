@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
+use bevy::audio::Volume;
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
@@ -46,6 +46,16 @@ pub struct Mixer {
 impl Default for Mixer {
     fn default() -> Self {
         Self { master: 1.0 }
+    }
+}
+
+impl Mixer {
+    pub fn as_volume(&self) -> Volume {
+        Volume::new(self.master)
+    }
+
+    pub fn as_volume_with_multiplier(&self, multiplier: f32) -> Volume {
+        Volume::new(self.master * multiplier)
     }
 }
 

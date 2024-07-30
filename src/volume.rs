@@ -148,8 +148,11 @@ fn volume_control(
     }
 }
 
+#[derive(Component)]
+pub struct AdjustingVolumeAudio;
+
 fn volume_update(
-    audio_q: Query<(&AudioSink, &PlaybackSettings)>,
+    audio_q: Query<(&AudioSink, &PlaybackSettings), With<AdjustingVolumeAudio>>,
     #[cfg(not(feature = "storage"))] mixer: Res<Mixer>,
     #[cfg(feature = "storage")] mixer: Res<bevy_persistent::Persistent<Mixer>>,
 ) {

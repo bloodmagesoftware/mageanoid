@@ -22,6 +22,7 @@ use bevy::prelude::*;
 use crate::ext::IntoVec3;
 use crate::gameplay::anim::*;
 use crate::gameplay::movement::*;
+use crate::persistent::Mixer;
 use crate::state::{AppState, ON_EXIT_GAMEPLAY};
 
 #[derive(Component, Debug)]
@@ -41,6 +42,8 @@ impl ProjectileBundle {
         texture_atlas_layouts: &mut ResMut<Assets<TextureAtlasLayout>>,
         position: Vec3,
         direction: Vec2,
+        #[cfg(not(feature = "storage"))] mixer: Res<Mixer>,
+        #[cfg(feature = "storage")] mixer: Res<bevy_persistent::Persistent<Mixer>>,
     ) {
         let texture = asset_server.load("sprites/projectile.png");
         let layout = TextureAtlasLayout::from_grid(UVec2::new(64, 64), 4, 1, None, None);
@@ -75,6 +78,7 @@ impl ProjectileBundle {
             source: asset_server.load("sounds/56_Attack_03.wav"),
             settings: PlaybackSettings {
                 mode: PlaybackMode::Despawn,
+                volume: mixer.as_volume(),
                 ..default()
             },
         };
@@ -82,6 +86,7 @@ impl ProjectileBundle {
             source: asset_server.load("sounds/18_Thunder_02.wav"),
             settings: PlaybackSettings {
                 mode: PlaybackMode::Despawn,
+                volume: mixer.as_volume_with_multiplier(0.5),
                 ..default()
             },
         };

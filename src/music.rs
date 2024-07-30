@@ -18,15 +18,20 @@
 use bevy::audio::{PlaybackMode, Volume};
 use bevy::prelude::*;
 
+use crate::volume::AdjustingVolumeAudio;
+
 fn spawn_music(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(AudioBundle {
-        source: asset_server.load("music/dark_dragon.ogg"),
-        settings: PlaybackSettings {
-            mode: PlaybackMode::Loop,
-            volume: Volume::new(0.5),
-            ..default()
+    commands.spawn((
+        AudioBundle {
+            source: asset_server.load("music/dark_dragon.ogg"),
+            settings: PlaybackSettings {
+                mode: PlaybackMode::Loop,
+                volume: Volume::new(0.5),
+                ..default()
+            },
         },
-    });
+        AdjustingVolumeAudio,
+    ));
 }
 
 pub struct MusicPlugin;

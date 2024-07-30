@@ -24,6 +24,7 @@ use crate::gameplay::anim::*;
 use crate::gameplay::health::Health;
 use crate::gameplay::movement::*;
 use crate::gameplay::projectile::*;
+use crate::persistent::Mixer;
 use crate::state::{AppState, ON_ENTER_GAMEPLAY, ON_EXIT_GAMEPLAY};
 
 const PLAYER_MOVE_SPEED: f32 = 175.0;
@@ -95,6 +96,9 @@ fn player_projectile(
 
     // touch
     touches: Res<Touches>,
+
+    #[cfg(not(feature = "storage"))] mixer: Res<Mixer>,
+    #[cfg(feature = "storage")] mixer: Res<bevy_persistent::Persistent<Mixer>>,
 ) {
     let (mut player, player_transform) = match player_q.get_single_mut() {
         Ok(player) => player,
@@ -131,6 +135,7 @@ fn player_projectile(
                     &mut texture_atlas_layouts,
                     player_transform.translation(),
                     direction,
+                    mixer,
                 );
 
                 player.projectile_spawn_timer.reset();
@@ -157,6 +162,7 @@ fn player_projectile(
                 &mut texture_atlas_layouts,
                 player_transform.translation(),
                 direction.normalize(),
+                mixer,
             );
 
             player.projectile_spawn_timer.reset();
@@ -182,6 +188,7 @@ fn player_projectile(
                 &mut texture_atlas_layouts,
                 player_transform.translation(),
                 direction,
+                mixer,
             );
 
             player.projectile_spawn_timer.reset();
@@ -194,6 +201,8 @@ fn player_step_sound_fx(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     time: Res<Time>,
+    #[cfg(not(feature = "storage"))] mixer: Res<Mixer>,
+    #[cfg(feature = "storage")] mixer: Res<bevy_persistent::Persistent<Mixer>>,
 ) {
     for (mut player, player_velocity) in player_q.iter_mut() {
         player.walk_sound_timer.tick(time.delta());
@@ -209,6 +218,7 @@ fn player_step_sound_fx(
             source: asset_server.load("sounds/03_Step_grass_03.wav"),
             settings: PlaybackSettings {
                 mode: PlaybackMode::Despawn,
+                volume: mixer.as_volume(),
                 ..default()
             },
         });
