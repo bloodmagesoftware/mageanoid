@@ -56,6 +56,35 @@ fn spawn_ui(
     let (exit_btn, exit_btn_text) = text_button("Exit", 1);
 
     commands
+        .spawn((
+            MainMenu,
+            NodeBundle {
+                style: Style {
+                    width: Val::Auto,
+                    height: Val::Auto,
+                    display: Display::Block,
+                    padding: UiRect {
+                        left: Val::Px(8.0),
+                        right: Val::Px(8.0),
+                        top: Val::Px(8.0),
+                        bottom: Val::Px(8.0),
+                    },
+                    ..default()
+                },
+                ..default()
+            },
+        ))
+        .with_children(|parent| {
+            parent.spawn(TextBundle::from_section(
+                format!("Version {}", env!("CARGO_PKG_VERSION")),
+                TextStyle {
+                    color: Color::linear_rgba(0.8, 0.8, 0.8, 0.8),
+                    ..default()
+                },
+            ));
+        });
+
+    commands
         .spawn((MainMenu, container))
         .with_children(|parent| {
             parent.spawn(text_title("Mageanoid"));
