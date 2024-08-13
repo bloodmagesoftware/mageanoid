@@ -21,7 +21,7 @@ use bevy::prelude::*;
 use crate::controls::ControlType;
 use crate::persistent::Mixer;
 use crate::state::AppState;
-use crate::style::{ButtonId, h_space, hbox, text, text_button, v_space, wrapper};
+use crate::style::{h_space, hbox, text, text_button, v_space, wrapper, ButtonId};
 
 #[derive(Component, Debug)]
 struct VolumeControlUi;

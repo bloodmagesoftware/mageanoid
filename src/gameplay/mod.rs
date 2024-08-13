@@ -21,6 +21,7 @@ use bevy::prelude::*;
 mod anim;
 mod cat;
 mod enemy;
+mod enemy_die;
 mod health;
 mod hud;
 pub mod movement;
@@ -36,6 +37,7 @@ impl Plugin for GameplayPlugin {
         app.add_plugins(anim::AnimPlugin)
             .add_plugins(cat::CatPlugin)
             .add_plugins(enemy::EnemyPlugin)
+            .add_plugins(enemy_die::EnemyDiePlugin)
             .add_plugins(health::HealthPlugin)
             .add_plugins(hud::HudPlugin)
             .add_plugins(movement::MovementPlugin)

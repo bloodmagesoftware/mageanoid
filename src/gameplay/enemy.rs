@@ -23,6 +23,7 @@ use rand_core::RngCore;
 
 use crate::ext::{IntoVec3, RandomAround};
 use crate::gameplay::anim::*;
+use crate::gameplay::enemy_die::EnemyDied;
 use crate::gameplay::health::*;
 use crate::gameplay::movement::*;
 use crate::gameplay::player::*;
@@ -168,6 +169,7 @@ fn projectile_hit_enemy(
     mut enemy_q: Query<(Entity, &Transform, &mut Health), With<Enemy>>,
     projectile_q: Query<(Entity, &Transform), With<Projectile>>,
     asset_server: Res<AssetServer>,
+    mut evw_enemy_died: EventWriter<EnemyDied>,
     #[cfg(feature = "storage")] mut score: ResMut<bevy_persistent::Persistent<Score>>,
     #[cfg(not(feature = "storage"))] mut score: ResMut<Score>,
     #[cfg(not(feature = "storage"))] mixer: Res<Mixer>,
@@ -181,6 +183,9 @@ fn projectile_hit_enemy(
                 <= 64.0
             {
                 if enemy_health.damage(1.0) {
+                    evw_enemy_died.send(EnemyDied {
+                        pos: enemy_transform.translation,
+                    });
                     commands.entity(enemy_entity).despawn_recursive();
                     score.increase(1);
                 }
