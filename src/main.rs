@@ -21,6 +21,7 @@ use bevy_rand::prelude::EntropyPlugin;
 
 mod cam;
 mod controls;
+mod death_screen;
 mod ext;
 mod gameplay;
 mod ldtk;
@@ -54,6 +55,7 @@ fn main() {
     .add_plugins(EntropyPlugin::<WyRand>::default())
     .add_plugins(cam::CamPlugin)
     .add_plugins(controls::ControlPlugin)
+    .add_plugins(death_screen::DeathScreenPlugin)
     .add_plugins(gameplay::GameplayPlugin)
     .add_plugins(ldtk::LdtkPlugin)
     .add_plugins(mainmenu::MainMenuPlugin)

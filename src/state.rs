@@ -24,6 +24,7 @@ pub enum AppState {
     MainMenu,
     Paused,
     InGame,
+    Death,
 }
 
 pub const ON_ENTER_GAMEPLAY: OnTransition<AppState> = OnTransition {

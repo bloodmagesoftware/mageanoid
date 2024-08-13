@@ -151,7 +151,7 @@ fn enemy_attack(
                     EnemyState::ReadyBlade => {
                         enemy_attack_fx(&mut commands, &asset_server, mixer);
                         if player_health.damage(1.0) {
-                            next_state.set(AppState::MainMenu);
+                            next_state.set(AppState::Death);
                         }
                         EnemyState::SwingBlade
                     }
