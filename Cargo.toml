@@ -16,7 +16,7 @@ bevy_ui = { version = "0.14.0" }
 rand_core = "0.6.4"
 wyrand = "0.2.1"
 dirs = "5.0.1"
-serde = "1.0.207"
+serde = "1.0.208"
 bevy_window = "0.14.0"
 
 [dev-dependencies]
